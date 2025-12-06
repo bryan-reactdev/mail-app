@@ -1,17 +1,17 @@
 import RecommendedHomesCard from "@/components/RecommendedHomesCard";
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Languages, LogIn } from "lucide-react";
-import { ChevronDown } from "lucide-react";
-import { LogOut } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { RippleButton, RippleButtonRipples } from "@/components/animate-ui/components/buttons/ripple";
 import { Effect } from "@/components/animate-ui/primitives/effects/effect";
-import Title from "@/components/Title";
+import Title from "@/components/title";
+import ClickSpark from "@/components/ClickSpark";
+import { useNavigate } from "react-router-dom";
 
 export default function Landing() {
+    const navigate = useNavigate();
+
     const projects = [
         { title: "Recommended Homes", image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80" },
         { title: "New Listings", image: "https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=800&q=80" },
@@ -29,101 +29,126 @@ export default function Landing() {
     ];
     const initialHeroIndex = Math.floor(Math.random() * heroImages.length);
 
-    return(
-    <div className="page">
-        {/* --- Navbar --- */}
-        <div className="w-full flex border-none p-4">
-            <ButtonGroup className="flex w-full justify-between px-4">
-                <ButtonGroup className="flex items-center">
-                    <Button variant={"link"}>
-                        <h1 className="text-2xl font-extrabold font-ztnature">BIOVAC</h1>
-                    </Button>
-                </ButtonGroup>
+    const handleLoginClick = () => {
+        navigate("/login");
+    };
 
-                <div className="flex flex-row">
-                    <RippleButton variant="default">
-                        <LogIn/> Login
-                        <RippleButtonRipples/>
-                    </RippleButton>
-                </div>
-            </ButtonGroup>
-        </div>
+    return (
+        <ClickSpark>
+            <main className="relative bg-sidebar min-h-screen">
+                {/* Navbar */}
+                <div className="w-full flex items-center gap-2 md:gap-4 bg-sidebar p-2 md:p-4 relative z-50">
+                    <div className="flex items-center justify-between w-full px-2 md:px-4">
+                        <Button
+                            variant="link"
+                            onClick={() => navigate("/")}
+                            className="cursor-pointer p-0 h-auto"
+                            tabIndex={0}
+                            aria-label="Go to Home"
+                            onKeyDown={e => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    navigate("/");
+                                }
+                            }}
+                        >
+                            <h1 className="text-2xl md:text-4xl font-extrabold font-ztnature cursor-pointer">BIOVAC</h1>
+                        </Button>
 
-        {/* --- Hero --- */}
-        <div className="relative w-full h-[450px] flex justify-center items-center">
-            <Carousel 
-                className="absolute inset-0"
-                opts={{ align: "start", loop: true, startIndex: initialHeroIndex }}
-                plugins={[Autoplay({ delay: 5000 })]}
-            >
-                <CarouselContent>
-                    {heroImages.map((src) => (
-                        <CarouselItem key={src} className="basis-full">
-                            <img className="w-full h-[450px] object-cover" src={src} alt="Hero background" />
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-            </Carousel>
-
-            <div className="w-[750px] text-center z-100">
-                <Title 
-                  text="La app #1 para gestionar todos tus proyectos"
-                  className="relative mb-10 font-extrabold text-6xl text-white font-inter leading-tight tracking-tight text-shadow-regular"
-                  delay={30}
-                  duration={0.12}
-                  rootMargin="0px"
-                />
-                
-                <div className="flex flex-col justify-center items-center text-center">
-                        <div className="w-full flex justify-center items-center gap-4">
-                        <Effect slide fade delay={100}>
-                            <RippleButton variant="default" className="button-hero text-md" size="lg">
-                                Conoce más
-                                <RippleButtonRipples/>
+                        <div className="flex flex-row items-center gap-3 md:gap-4">
+                            <RippleButton 
+                                variant="default" 
+                                onClick={handleLoginClick}
+                                size="sm"
+                                className="h-9 md:h-10 px-2 md:px-4"
+                            >
+                                <LogIn className="h-4 w-4 md:h-4 md:w-4" />
+                                <span className="hidden sm:inline">Login</span>
+                                <RippleButtonRipples />
                             </RippleButton>
-                        </Effect>
-                        <Effect slide fade delay={150}>
-                            <RippleButton variant="default" className="button-hero text-md" size="lg">
-                                Registrate
-                                <RippleButtonRipples/>
-                            </RippleButton>
-                        </Effect>
                         </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        {/* --- 2nd Section --- */}
-        <div className="w-full p-12 px-24">
-            <Title 
-              text="Nuestros Proyectos" 
-              className="font-bold text-2xl mb-4"
-              effectDelay={250}
-            />
-            <Carousel
-                className="w-full" 
-                opts={{ align: "start", loop: true }}
-                plugins={[
-                    Autoplay({ delay: 2250, stopOnInteraction: true, stopOnMouseEnter: true })
-                ]}
-            >
-                <CarouselContent>
-                    {projects.map((item, index) => {
-                        const idx = index + 4;
+                {/* Content */}
+                <div className="w-full flex flex-col z-10 relative">
+                    {/* Hero Section */}
+                    <div className="relative w-full h-[450px] flex justify-center items-center">
+                        <Carousel 
+                            className="absolute inset-0"
+                            opts={{ align: "start", loop: true, startIndex: initialHeroIndex }}
+                            plugins={[Autoplay({ delay: 5000 })]}
+                        >
+                            <CarouselContent>
+                                {heroImages.map((src) => (
+                                    <CarouselItem key={src} className="basis-full">
+                                        <img className="w-full h-[450px] object-cover" src={src} alt="Hero background" />
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                        </Carousel>
 
-                        return (
-                            <CarouselItem key={item.title} className="basis-1/3">
-                                <Effect slide fade delay={250 + idx * 50}>
-                                    <RecommendedHomesCard title={item.title} image={item.image} />
-                                </Effect>
-                            </CarouselItem>
-                        )
-                    })}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-            </Carousel>
-        </div>
-    </div>
+                        <div className="w-full max-w-[750px] px-4 text-center z-10 relative">
+                            <Title 
+                                text="La app #1 para gestionar todos tus proyectos"
+                                className="relative mb-10 font-extrabold text-4xl md:text-6xl text-white font-inter leading-tight tracking-tight text-shadow-regular"
+                                delay={30}
+                                duration={0.12}
+                                rootMargin="0px"
+                            />
+                            
+                            <div className="flex flex-col justify-center items-center text-center">
+                                <div className="w-full flex flex-col sm:flex-row justify-center items-center gap-4">
+                                    <Effect slide fade delay={100}>
+                                        <RippleButton variant="default" className="button-hero text-md" size="lg">
+                                            Conoce más
+                                            <RippleButtonRipples/>
+                                        </RippleButton>
+                                    </Effect>
+                                    <Effect slide fade delay={150}>
+                                        <RippleButton variant="default" className="button-hero text-md" size="lg">
+                                            Registrate
+                                            <RippleButtonRipples/>
+                                        </RippleButton>
+                                    </Effect>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Projects Section */}
+                    <div className="w-full px-4 md:px-12 lg:px-24 py-12">
+                        <Title 
+                            text="Nuestros Proyectos" 
+                            className="font-bold text-2xl mb-4"
+                            effectDelay={250}
+                        />
+                        <Carousel
+                            className="w-full" 
+                            opts={{ align: "start", loop: true }}
+                            plugins={[
+                                Autoplay({ delay: 2250, stopOnInteraction: true, stopOnMouseEnter: true })
+                            ]}
+                        >
+                            <CarouselContent>
+                                {projects.map((item, index) => {
+                                    const idx = index + 4;
+
+                                    return (
+                                        <CarouselItem key={item.title} className="basis-full sm:basis-1/2 lg:basis-1/3">
+                                            <Effect slide fade delay={250 + idx * 50}>
+                                                <RecommendedHomesCard title={item.title} image={item.image} />
+                                            </Effect>
+                                        </CarouselItem>
+                                    )
+                                })}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                        </Carousel>
+                    </div>
+                </div>
+            </main>
+        </ClickSpark>
     )
 }

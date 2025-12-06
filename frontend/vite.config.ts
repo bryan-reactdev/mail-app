@@ -17,5 +17,11 @@ export default defineConfig({
   server: {
     port: 4174,
     host: true,
+    allowedHosts: ['domain.com', 'www.domain.com'],
+  },
+  preview: {
+    port: 4174,
+    host: true,
+    allowedHosts: ['domain.com', 'www.domain.com'],
   },
 })

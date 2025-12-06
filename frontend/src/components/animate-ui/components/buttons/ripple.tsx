@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { type VariantProps } from 'class-variance-authority';
 
 import { buttonVariants } from '@/components/animate-ui/components/buttons/button';
@@ -34,6 +33,7 @@ function RippleButton({
   return (
     <RippleButtonPrimitive
       className={cn(
+        "blur-bg",
         buttonVariants({ variant, size, className }),
         rippleButtonVariants[variant as keyof typeof rippleButtonVariants],
       )}

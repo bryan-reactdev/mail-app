@@ -1,10 +1,21 @@
 import { Link } from "react-router-dom";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
-import { Calendar, FileText, Folder, History, Home, PencilRuler, Users } from "lucide-react";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
+import { Folder, History, Home, Users, Wrench } from "lucide-react";
+import RoleRestricted from "./access/RoleRestricted";
+
+type SidebarRole = "admin" | "supervisor" | "secretary";
+
+type SidebarItem = {
+    label: string;
+    icon: typeof Home;
+    to: string;
+    roles?: SidebarRole[];
+};
 
 export default function AppSidebar() {
+  const { setOpenMobile, isMobile } = useSidebar();
 
-  const menuItems = [
+  const menuItems: SidebarItem[] = [
     {
       label: "Dashboard",
       icon: Home,
@@ -13,22 +24,13 @@ export default function AppSidebar() {
     {
       label: "Projects",
       icon: Folder,
-      to: "/projects",
+      to: "/projects/agenda",
     },
     {
-      label: "Estimation",
-      icon: PencilRuler,
-      to: "/estimation",
-    },
-    {
-      label: "Reports",
-      icon: FileText,
-      to: "/reports",
-    },
-    {
-      label: "Appointments",
-      icon: Calendar,
-      to: "/appointments",
+      label: "Tools",
+      icon: Wrench,
+      to: "/tools",
+      roles: ["admin", "supervisor"],
     },
     {
       label: "Users",
@@ -51,16 +53,30 @@ export default function AppSidebar() {
                   
                   <SidebarGroupContent>
                     <SidebarMenu>
-                      {menuItems.map((item) => (
-                        <SidebarMenuItem key={item.to}>
-                          <SidebarMenuButton asChild>
-                            <Link to={item.to}>
-                              <item.icon />
-                              <span className="font-normal">{item.label}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
+                      {menuItems.map((item) => {
+                        const isActive = window.location.pathname.replace(/\/$/, '') === item.to.replace(/\/$/, '');
+                        const menuEntry = (
+                          <SidebarMenuItem key={item.to}>
+                            <SidebarMenuButton asChild>
+                              <Link
+                                  className={`h-10 justify-start text-muted-foreground ${isActive ? 'bg-accent !text-white' : ''}`}
+                                to={item.to}
+                                onClick={() => {
+                                  // Cerrar el sidebar en móvil al hacer clic en un item
+                                  if (isMobile) {
+                                    setOpenMobile(false);
+                                  }
+                                }}
+                              >
+                                <item.icon />
+                                <span className="font-normal">{item.label}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+
+                        return menuEntry;
+                      })}
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </SidebarGroup>

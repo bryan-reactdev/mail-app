@@ -27,7 +27,7 @@ export default function BaseFormModal({ isOpen, onOpenChange }: BaseFormModalPro
         },
     });
 
-    const onSubmit = async(data: z.infer<typeof formSchema>) => {
+    const onSubmit = async(_data: z.infer<typeof formSchema>) => {
         setIsSubmitting(true);
 
         await new Promise(resolve => setTimeout(resolve, 1000));

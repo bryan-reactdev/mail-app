@@ -1,45 +1,70 @@
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { ChevronDown, Languages, LogOut } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { LogOut } from "lucide-react";
 import { RippleButton, RippleButtonRipples } from "./animate-ui/components/buttons/ripple";
+import { useUserStore } from "@/stores/useUserStore";
+import { useNavigate } from "react-router-dom";
 
 export default function AppNavbar() {
+    const { logout } = useUserStore();
+    const navigate = useNavigate();
     return (
         <div className="w-full border-none">
-            <ButtonGroup className="flex w-full justify-between px-4">
-                <ButtonGroup className="flex items-center">
-                    <Button variant={"link"}>
-                        <h1 className="text-2xl font-extrabold font-ztnature">BIOVAC</h1>
+            <div className="relative flex items-center justify-between w-full px-2 md:px-4 h-16 gap-2">
+                {/* Left (BIOVAC logo) - Mobile */}
+                <div className="flex md:hidden">
+                    <Button
+                        variant="link"
+                        onClick={() => navigate("/")}
+                        className="cursor-pointer p-0 h-auto"
+                        tabIndex={0}
+                        aria-label="Go to Home"
+                        onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                navigate("/");
+                            }
+                        }}
+                    >
+                        <h1 className="text-2xl font-extrabold font-ztnature cursor-pointer">BIOVAC</h1>
                     </Button>
-                </ButtonGroup>
+                </div>
 
-                <div className="flex flex-row">
-                    {/* <Button variant={"link"} onClick={onLoginClick}>Log in</Button> */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant={"ghost"}>
-                                <Languages/> 
-                                Language
-                                <ChevronDown/>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem>
-                                <Languages/> English
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Languages/> Spanish
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                {/* Center (BIOVAC logo) - Desktop */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
+                    <Button
+                        variant="link"
+                        onClick={() => navigate("/")}
+                        className="cursor-pointer p-0 h-auto"
+                        tabIndex={0}
+                        aria-label="Go to Home"
+                        onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                navigate("/");
+                            }
+                        }}
+                    >
+                        <h1 className="text-4xl font-extrabold font-ztnature cursor-pointer">BIOVAC</h1>
+                    </Button>
+                </div>
+                
+                {/* Right (Language & Log Out) */}
+                <div className="flex flex-row items-center gap-3 md:gap-4 ml-auto">
+                    {/* Separador visual */}
+                    <div className="h-6 w-px bg-border/50 hidden sm:block" />
 
-                    <RippleButton variant={"default"}>
-                        <LogOut/> Log Out
-                        <RippleButtonRipples/>
+                    <RippleButton 
+                        variant="default" 
+                        onClick={() => logout()}
+                        size="sm"
+                        className="h-9 md:h-10 px-2 md:px-4"
+                    >
+                        <LogOut className="h-4 w-4 md:h-4 md:w-4" />
+                        <span className="hidden sm:inline">Logout</span>
+                        <RippleButtonRipples />
                     </RippleButton>
                 </div>
-            </ButtonGroup>
+            </div>
         </div>
     );
 }
