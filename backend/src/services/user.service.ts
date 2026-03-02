@@ -1,75 +1,143 @@
-// servicios de usuarios
-import { AppDataSource } from "../app";
-import { User, UserRole } from "../entities/User";
-import bcrypt from "bcryptjs";
+import { Repository } from 'typeorm';
+import { AppDataSource } from '../config/database';
+import { User } from '../entities/User';
+import { CreateUserDTO, UpdateUserDTO } from '../schemas/user.schema';
+import * as bcrypt from 'bcryptjs';
 
-// crear usuario
-export const createUser = async (data: {
-  email: string;
-  password: string;
-  name: string;
-  role?: UserRole;
-}) => {
-  const repo = AppDataSource.getRepository(User);
+export class UserService {
+  private userRepository: Repository<User>;
 
-  const exists = await repo.findOne({ where: { email: data.email } });
-  if (exists) throw new Error("Email already exists");
+  constructor() {
+    this.userRepository = AppDataSource.getRepository(User);
+  }
 
-  const hashed = await bcrypt.hash(data.password, 10);
+  /**
+   * Obtiene todos los usuarios sin la contraseña
+   */
+  async findAll(): Promise<Omit<User, 'password'>[]> {
+    const users = await this.userRepository.find({
+      order: { createdAt: 'DESC' },
+    });
 
-  const user = repo.create({
-    email: data.email,
-    password: hashed,
-    name: data.name,
-    role: data.role || UserRole.USER,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+    // Remover la contraseña de todos los usuarios
+    return users.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
+  }
 
-  return repo.save(user);
-};
+  /**
+   * Obtiene un usuario por ID sin la contraseña
+   */
+  async findById(id: number): Promise<Omit<User, 'password'> | null> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    
+    if (!user) {
+      return null;
+    }
 
-// listar
-export const getUsers = async () => {
-  return AppDataSource.getRepository(User).find();
-};
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
 
-// obtener por id
-export const getUserById = async (id: number) => {
-  const repo = AppDataSource.getRepository(User);
-  const user = await repo.findOne({ where: { id } });
-  if (!user) throw new Error("User not found");
-  return user;
-};
+  /**
+   * Crea un nuevo usuario
+   */
+  async create(data: CreateUserDTO): Promise<Omit<User, 'password'>> {
+    // Verificar si el email ya está en uso
+    const existingUser = await this.userRepository.findOne({
+      where: { email: data.email },
+    });
 
-// actualizar
-export const updateUser = async (
-  id: number,
-  data: { email?: string; name?: string; password?: string; role?: UserRole }
-) => {
-  const repo = AppDataSource.getRepository(User);
+    if (existingUser) {
+      throw new Error('El email ya está registrado');
+    }
 
-  const user = await repo.findOne({ where: { id } });
-  if (!user) throw new Error("User not found");
+    // Hash de la contraseña
+    const hashedPassword = await bcrypt.hash(data.password, 10);
 
-  if (data.email) user.email = data.email;
-  if (data.name) user.name = data.name;
-  if (data.role) user.role = data.role;
-  if (data.password) user.password = await bcrypt.hash(data.password, 10);
+    // Crear nuevo usuario
+    const newUser = this.userRepository.create({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      password: hashedPassword,
+      role: data.role || 'usuario',
+      phone: data.phone || null,
+      description: data.description || null,
+      license: data.license || null,
+      brokerId: data.brokerId || null,
+    });
 
-  user.updatedAt = new Date();
+    const savedUser = await this.userRepository.save(newUser);
 
-  return repo.save(user);
-};
+    // Retornar usuario sin la contraseña
+    const { password, ...userWithoutPassword } = savedUser;
+    return userWithoutPassword;
+  }
 
-// eliminar
-export const deleteUser = async (id: number) => {
-  const repo = AppDataSource.getRepository(User);
+  /**
+   * Actualiza un usuario por ID
+   */
+  async update(id: number, data: UpdateUserDTO): Promise<Omit<User, 'password'>> {
+    // Verificar si el usuario existe
+    const user = await this.userRepository.findOne({ where: { id } });
+    
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
 
-  const user = await repo.findOne({ where: { id } });
-  if (!user) throw new Error("User not found");
+    // Verificar si el email ya está en uso por otro usuario
+    if (data.email !== user.email) {
+      const existingUser = await this.userRepository.findOne({
+        where: { email: data.email },
+      });
 
-  await repo.remove(user);
-  return true;
-};
+      if (existingUser) {
+        throw new Error('El email ya está registrado');
+      }
+    }
+
+    // Hash de la contraseña si se proporciona
+    const updateData: Partial<User> = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+    };
+
+    if (data.password && data.password.trim() !== '') {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
+
+    if (data.role !== undefined) {
+      updateData.role = data.role;
+    }
+
+    // Agent-specific fields
+    if (data.phone !== undefined) {
+      updateData.phone = data.phone;
+    }
+    if (data.description !== undefined) {
+      updateData.description = data.description;
+    }
+    if (data.license !== undefined) {
+      updateData.license = data.license; // Agent's personal license
+    }
+    // Broker relation (agents work for brokers)
+    if (data.brokerId !== undefined) {
+      updateData.brokerId = data.brokerId;
+    }
+
+    // Actualizar usuario
+    await this.userRepository.update(id, updateData);
+
+    // Obtener el usuario actualizado
+    const updatedUser = await this.userRepository.findOne({ where: { id } });
+    
+    if (!updatedUser) {
+      throw new Error('Error al actualizar usuario');
+    }
+
+    // Retornar usuario sin la contraseña
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
+  }
+}
 

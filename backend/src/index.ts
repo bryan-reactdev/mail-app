@@ -1,92 +1,40 @@
-import Fastify from "fastify";
-import { AppDataSource } from "./app";
+import 'reflect-metadata';
+import { config } from 'dotenv';
+import { createApp } from './app';
+import { AppDataSource } from './config/database';
 
-import dotenv from "dotenv";
-import fastifyJwt from "fastify-jwt";
-import fastifyCookie from "@fastify/cookie";
-import fastifyCors from "@fastify/cors";
+config();
 
-import authRoutes from "./routes/auth.routes";
+async function start() {
+  try {
+    await AppDataSource.initialize();
+    console.log('✅ Database connected');
 
-dotenv.config();
-const server = Fastify({ logger: true });
+    const app = await createApp();
 
-// CORS
-server.register(fastifyCors, {
-    origin: (origin, cb) => {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return cb(null, true);
-        
-        const allowedOrigins = [
-            "http://biovizionalbums.com",
-            "https://biovizionalbums.com",
-            "http://192.168.3.182:3000",
-            "http://192.168.3.182:3001",
-            "http://192.168.3.182:4174",
-            "http://192.168.3.13:3000",
-            "http://192.168.3.13:3001",
-            "http://192.168.3.13:4174",
-            "http://192.168.0.210:4174",
-            "http://192.168.0.210:3000",
-            "http://192.168.0.210:3001",
-            "http://www.biovizionalbums.com",
-            "https://www.biovizionalbums.com",
-            "http://localhost:4176",
-            "http://localhost:3000",
-        ];
-        
-        if (allowedOrigins.includes(origin)) {
-            cb(null, true);
-        } else {
-            cb(new Error("Not allowed by CORS"), false);
-        }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+    const port = parseInt(process.env.PORT || '3000');
+    const host = process.env.HOST || '0.0.0.0';
+
+    await app.listen({ port, host });
+    console.log(`🚀 Server running at http://${host}:${port}`);
+  } catch (error) {
+    console.error('❌ Error al iniciar el servidor:', error);
+    process.exit(1);
+  }
+}
+
+// Manejo de cierre graceful
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM recibido, cerrando servidor...');
+  await AppDataSource.destroy();
+  process.exit(0);
 });
 
-// Cookies
-server.register(fastifyCookie);
-
-// JWT
-server.register(fastifyJwt, {
-    secret: process.env.JWT_SECRET || "supersecret",
-    cookie: {
-        cookieName: "token",
-        signed: false
-    }
+process.on('SIGINT', async () => {
+  console.log('SIGINT recibido, cerrando servidor...');
+  await AppDataSource.destroy();
+  process.exit(0);
 });
-
-// Auth routes
-server.register(async function (app) {
-    app.register(authRoutes, { prefix: "/auth" });
-}, { prefix: "/biovac" });
-
-// Server startup
-const start = async () => {
-    try {
-        await AppDataSource.initialize();
-        console.log("DB connected");
-
-        const timezone = process.env.DB_TIMEZONE || 'America/Montreal';
-        try {
-            await AppDataSource.query(`SET time_zone = '${timezone}'`);
-            console.log(`MySQL timezone set to: ${timezone}`);
-        } catch (tzError) {
-            try {
-                await AppDataSource.query(`SET time_zone = '-05:00'`);
-                console.log(`MySQL timezone set to: -05:00`);
-            } catch (offsetError) {
-                console.warn(`Warning: Could not set MySQL timezone: ${offsetError}`);
-            }
-        }
-
-        await server.listen({ port: 3001, host: '0.0.0.0' });
-        console.log("Server running on http://localhost:3001");
-    } catch (err) {
-        console.error(err);
-        process.exit(1);
-    }
-};
 
 start();
+

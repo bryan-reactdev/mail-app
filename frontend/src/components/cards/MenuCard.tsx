@@ -25,14 +25,14 @@ export default function MenuCard({ className, icon: Icon, title, description, bu
                     <h1 className="text-xl font-semibold font-ztnature">{title}</h1>
                 </CardTitle>
                 {description && (
-                    <CardDescription className="font-normal font-inter group-hover:text-primary transition-colors duration-100">
+                    <CardDescription className="font-normal group-hover:text-primary transition-colors duration-100">
                         {description}
                     </CardDescription>
                 )}
             </CardHeader>
             <CardContent className="w-full pl-4 mt-auto">
                 <CardAction className="w-full">
-                    <Button className="w-full justify-start font-outfit mt-auto" variant={"link"}>
+                    <Button className="w-full justify-start mt-auto" variant={"link"}>
                         {buttonText}
                         <ChevronRight/>
                     </Button>

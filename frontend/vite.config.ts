@@ -14,13 +14,16 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  define: {
+    global: 'globalThis',
+  },
   server: {
-    port: 4174,
+    port: 4178,
     host: true,
     allowedHosts: ['domain.com', 'www.domain.com'],
   },
   preview: {
-    port: 4174,
+    port: 4178,
     host: true,
     allowedHosts: ['domain.com', 'www.domain.com'],
   },

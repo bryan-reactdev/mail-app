@@ -1,113 +1,156 @@
-import { FastifyRequest, FastifyReply } from "fastify";
-import { AppDataSource } from "../app";
-import { User, UserRole } from "../entities/User";
-import { findUserByEmail, verifyPassword } from "../services/auth.service";
-import { createUser } from "../services/user.service";
-import bcrypt from "bcryptjs";
+import { FastifyRequest, FastifyReply } from 'fastify';
+import { AuthService } from '../services/auth.service';
+import { RegisterDTO, LoginDTO } from '../schemas/auth.schema';
+import { AuthenticatedRequest } from '../middlewares/auth';
+import type { ApiResponse } from '../dtos/apiResponse.dto';
+import { User } from '../entities/User';
 
-interface LoginBody {
-    email: string;
-    password: string;
+const authService = new AuthService();
+
+export async function register(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  try {
+    const user = await authService.register(request.body as RegisterDTO);
+    const response: ApiResponse<Omit<User, 'password'>> = {
+      message: 'Usuario registrado exitosamente',
+      data: user,
+    };
+    return reply.status(201).send(response);
+  } catch (error: any) {
+    if (error.message === 'El email ya está registrado') {
+      const errorResponse: ApiResponse<null> = {
+        message: error.message,
+        data: null,
+      };
+      return reply.status(409).send(errorResponse);
+    }
+    if (error.message.includes('contraseña') || error.message.includes('nombre') || error.message.includes('apellido')) {
+      const errorResponse: ApiResponse<null> = {
+        message: error.message,
+        data: null,
+      };
+      return reply.status(400).send(errorResponse);
+    }
+    request.log.error(error);
+    const errorResponse: ApiResponse<null> = {
+      message: 'Error al registrar usuario',
+      data: null,
+    };
+    return reply.status(500).send(errorResponse);
+  }
 }
 
-interface RegisterBody {
-    email: string;
-    password: string;
-    name: string;
-    role?: UserRole;
-}
+export async function login(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  try {
+    const user = await authService.login(request.body as LoginDTO);
 
-const mapUserToResponse = (user: User) => {
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-};
+    // Generar token JWT con expiración
+    const token = (request.server as any).jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      }
+    );
 
-export const register = async (req: FastifyRequest, reply: FastifyReply) => {
-    try {
-        const { email, password, name, role } = req.body as RegisterBody;
-
-        if (!email || !password || !name) {
-            return reply.status(400).send({ message: "Email, password, and name are required" });
-        }
-
-        const user = await createUser({ email, password, name, role });
-
-        reply.send({
-            message: "User registered successfully",
-            data: mapUserToResponse(user),
-        });
-    } catch (error: any) {
-        console.error(error);
-        reply.status(400).send({ message: error.message || "Registration failed" });
-    }
-};
-
-export const login = async (req: FastifyRequest, reply: FastifyReply) => {
-    try {
-        const { email, password } = req.body as LoginBody;
-
-        if (!email || !password) {
-            return reply.status(400).send({ message: "Email and password are required" });
-        }
-
-        const user = await findUserByEmail(email);
-        if (!user) {
-            return reply.status(401).send({ message: "Invalid credentials" });
-        }
-
-        const isValidPassword = await verifyPassword(password, user.password);
-        if (!isValidPassword) {
-            return reply.status(401).send({ message: "Invalid credentials" });
-        }
-
-        const token = (req.server as any).jwt.sign({
-            id: user.id,
-            email: user.email,
-            role: user.role,
-        });
-
-        reply.setCookie("token", token, {
-            path: "/",
-            httpOnly: true,
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
-        });
-
-        reply.send({
-            message: "Login successful",
-            data: mapUserToResponse(user),
-        });
-    } catch (error: any) {
-        console.error(error);
-        reply.status(500).send({ message: "Login failed" });
-    }
-};
-
-export const logout = async (req: FastifyRequest, reply: FastifyReply) => {
-    reply.clearCookie("token", {
-        path: "/",
-        sameSite: "lax",
+    // Configurar cookie con el token (segura)
+    reply.setCookie('token', token, {
+      httpOnly: true, // Previene acceso desde JavaScript (XSS)
+      secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+      sameSite: 'lax', // Protección CSRF
+      maxAge: 7 * 24 * 60 * 60, // 7 días
+      path: '/',
     });
-    reply.send({ message: "Logout successful" });
-};
 
-export const checkAuth = async (req: FastifyRequest, reply: FastifyReply) => {
-    try {
-        const userPayload = req.user as { id: number };
-        const repo = AppDataSource.getRepository(User);
-        const user = await repo.findOne({ where: { id: userPayload.id } });
-
-        if (!user) {
-            return reply.status(401).send({ message: "User not found" });
-        }
-
-        reply.send({
-            message: "Authenticated",
-            data: mapUserToResponse(user),
-        });
-    } catch (error: any) {
-        console.error(error);
-        reply.status(500).send({ message: "Authentication check failed" });
+    const { password, ...userWithoutPassword } = user;
+    const response: ApiResponse<{ user: Omit<User, 'password'>; token: string }> = {
+      message: 'Login exitoso',
+      data: {
+        user: userWithoutPassword,
+        token,
+      },
+    };
+    return reply.send(response);
+  } catch (error: any) {
+    // Siempre usar el mismo mensaje para no revelar información
+    if (error.message === 'Credenciales inválidas') {
+      const errorResponse: ApiResponse<null> = {
+        message: error.message,
+        data: null,
+      };
+      return reply.status(401).send(errorResponse);
     }
-};
+    // No exponer detalles del error interno
+    request.log.error(error);
+    const errorResponse: ApiResponse<null> = {
+      message: 'Error al iniciar sesión',
+      data: null,
+    };
+    return reply.status(500).send(errorResponse);
+  }
+}
+
+export async function logout(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  // Limpiar cookie con las mismas opciones de seguridad
+  reply.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+  });
+  const response: ApiResponse<null> = {
+    message: 'Sesión cerrada exitosamente',
+    data: null,
+  };
+  return reply.send(response);
+}
+
+export async function getProfile(
+  request: AuthenticatedRequest,
+  reply: FastifyReply
+) {
+  try {
+    const userPayload = request.user;
+    if (!userPayload) {
+      const errorResponse: ApiResponse<null> = {
+        message: 'No autorizado',
+        data: null,
+      };
+      return reply.status(401).send(errorResponse);
+    }
+
+    const user = await authService.findById(userPayload.id);
+    if (!user) {
+      const errorResponse: ApiResponse<null> = {
+        message: 'Usuario no encontrado',
+        data: null,
+      };
+      return reply.status(404).send(errorResponse);
+    }
+
+    const { password, ...userWithoutPassword } = user;
+    const response: ApiResponse<Omit<User, 'password'>> = {
+      message: 'Perfil obtenido exitosamente',
+      data: userWithoutPassword,
+    };
+    return reply.send(response);
+  } catch (error) {
+    const errorResponse: ApiResponse<null> = {
+      message: 'Error al obtener perfil',
+      data: null,
+    };
+    return reply.status(500).send(errorResponse);
+  }
+}
 

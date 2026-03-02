@@ -1,28 +1,28 @@
 import type { User } from "./entities";
-import type { LoginForm } from "./form";
+import type { LoginForm, RegisterForm, RegisterUserForm, EditUserForm, CreateUserForm } from "./form";
 
 export interface UserStore {
-    currentUser: User | null,
-    isAuthenticating: boolean,
-    isLogging: boolean,
+    currentUser: User | null;
+    isAuthenticating: boolean;
+    isLogging: boolean;
 
-    user: User | null,
-    isFetchingUser: boolean,
+    user: User | null;
+    isFetchingUser: boolean;
 
-    users: User[],
-    isFetchingUsers: boolean,
-    isUpdatingUser: boolean,
-    isRegisteringUser: boolean,
-    isTogglingBlockUser: boolean,
+    users: User[];
+    isFetchingUsers: boolean;
+    isUpdatingUser: boolean;
+    isRegisteringUser: boolean;
+    isCreatingUser: boolean;
 
-    authenticate: () => Promise<void>,
-    login: (data: LoginForm) => Promise<boolean>,
-    logout: () => Promise<void>,
+    authenticate: () => Promise<void>;
+    login: (data: LoginForm) => Promise<boolean>;
+    register: (data: RegisterForm | FormData) => Promise<boolean>;
+    logout: () => Promise<void>;
 
-
-    getUser: (id: number, includeProjects?: boolean) => Promise<User | null>,
-    getUsers: (includeProjects?: boolean) => Promise<void>,
-    updateUser: (id: number, data: { email?: string; name?: string; password?: string; role?: string }) => Promise<boolean>,
-    registerUser: (data: { email: string; name: string; password: string; role: string }) => Promise<boolean>,
-    toggleBlockUser: (id: number) => Promise<boolean>,
+    getUser: (id: number) => Promise<User | null>;
+    getUsers: () => Promise<void>;
+    updateUser: (id: number, data: EditUserForm) => Promise<boolean>;
+    registerUser: (data: RegisterUserForm) => Promise<boolean>;
+    createUser: (data: CreateUserForm) => Promise<boolean>;
 }

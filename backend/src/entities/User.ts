@@ -1,38 +1,46 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
-export enum UserRole {
-    ADMIN = "admin",
-    USER = "user",
-}
-
-@Entity()
+@Entity('users')
 export class User {
-    @PrimaryGeneratedColumn()
-    id!: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ unique: true })
-    email!: string;
+  @Column({ unique: true })
+  email: string;
 
-    @Column({ select: false })
-    password!: string;
+  @Column()
+  password: string;
 
-    @Column()
-    name!: string;
+  @Column({ name: 'first_name' })
+  firstName: string;
 
-    @Column({
-        type: "enum",
-        enum: UserRole,
-        default: UserRole.USER
-    })
-    role!: UserRole;
+  @Column({ name: 'last_name' })
+  lastName: string;
 
-    @Column({ type: "datetime", default: () => "CURRENT_TIMESTAMP" })
-    createdAt!: Date;
+  @Column({ nullable: true, default: 'usuario' })
+  role: string;
 
-    @Column({
-        type: "datetime",
-        default: () => "CURRENT_TIMESTAMP",
-        onUpdate: "CURRENT_TIMESTAMP",
-    })
-    updatedAt!: Date;
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  phone: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  license: string | null;
+
+  @Column({ name: 'broker_id', nullable: true })
+  brokerId: number | null;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 }

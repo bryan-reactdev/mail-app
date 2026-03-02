@@ -1,177 +1,226 @@
-import { FastifyRequest, FastifyReply } from "fastify";
-import { createUser, getUsers, getUserById, updateUser, deleteUser, toggleBlockStatus } from "../services/user.service";
-import ApiResponse from "../dtos/apiResponse";
-import UserResponse, { mapUserToResponse } from "../dtos/user";
-import { logAction, ActionType, EntityType } from "../services/audit.service";
-import { User } from "../entities/User";
+import { FastifyRequest, FastifyReply } from 'fastify';
+import { UserService } from '../services/user.service';
+import { AuthenticatedRequest } from '../middlewares/auth';
+import type { ApiResponse } from '../dtos/apiResponse.dto';
+import { createUserSchema, CreateUserDTO, updateUserSchema, UpdateUserDTO } from '../schemas/user.schema';
 
-// validar id
-const validateId = (id: any, name: string) => {
-  const num = Number(id);
-  if (isNaN(num)) throw new Error(`${name} inválido`);
-  return num;
-};
+const userService = new UserService();
 
-// crear
-export const addUser = async (req: FastifyRequest, reply: FastifyReply) => {
+/**
+ * Crear un nuevo usuario
+ */
+export async function createUser(
+  request: FastifyRequest<{ Body: CreateUserDTO }>,
+  reply: FastifyReply
+) {
   try {
-    const currentUser = req.user as User;
-    const { email, password, name, role } = req.body as any;
-
-    const user = await createUser({ email, password, name, role });
-
-    // Log de auditoría
-    await logAction(
-      currentUser.id,
-      ActionType.CREATE_USER,
-      EntityType.USER,
-      user.id,
-      `Usuario {userName} creó el usuario ${user.name} (${user.email})`
-    );
-
-    const apiResponse: ApiResponse<UserResponse> = {
-      message: "User created successfully",
-      data: mapUserToResponse(user, false),
-    };
-
-    reply.send(apiResponse);
-  } catch (error: any) {
-    console.error(error);
-    reply.status(400).send({ message: error.message });
-  }
-};
-
-// listar
-export const listUsers = async (req: FastifyRequest, reply: FastifyReply) => {
-  const includeProjects = (req.query as any).includeProjects === "true";
-  const users = await getUsers(includeProjects);
-  console.log(`[listUsers] includeProjects=${includeProjects}, found ${users.length} users`);
-  const mapped = users.map(u => {
-    const mappedUser = mapUserToResponse(u, includeProjects);
-    if (includeProjects) {
-      console.log(`[listUsers] User ${u.id}: mapped with ${mappedUser.projectUsers?.length || 0} projectUsers`);
+    const userPayload = (request as AuthenticatedRequest).user;
+    if (!userPayload) {
+      const errorResponse: ApiResponse<null> = {
+        message: 'No autorizado',
+        data: null,
+      };
+      return reply.status(401).send(errorResponse);
     }
-    return mappedUser;
-  });
 
-  const apiResponse: ApiResponse<UserResponse[]> = {
-    message: "Users retrieved successfully",
-    data: mapped,
-  };
+    // Validar datos con Zod
+    const validatedData = createUserSchema.parse(request.body);
 
-  reply.send(apiResponse);
-};
+    // Crear usuario
+    const newUser = await userService.create(validatedData);
 
-// obtener por id
-export const getUser = async (req: FastifyRequest, reply: FastifyReply) => {
-  try {
-    const id = validateId((req.params as any).id, "userId");
-    const includeProjects = (req.query as any).includeProjects === "true";
-
-    console.log(`[getUser controller] User ${id}, includeProjects=${includeProjects}`);
-
-    const user = await getUserById(id, includeProjects);
-
-    const mappedUser = mapUserToResponse(user, includeProjects);
-    console.log(`[getUser controller] Mapped user ${id}: projectUsers=${mappedUser.projectUsers?.length || 0}`);
-
-    const apiResponse: ApiResponse<UserResponse> = {
-      message: "User retrieved successfully",
-      data: mappedUser,
+    const response: ApiResponse<typeof newUser> = {
+      message: 'Usuario creado exitosamente',
+      data: newUser,
     };
 
-    reply.send(apiResponse);
+    return reply.status(201).send(response);
   } catch (error: any) {
-    console.error(`[getUser controller] Error:`, error);
-    reply.status(404).send({ message: error.message });
-  }
-};
+    request.log.error(error);
+    
+    // Manejo de errores específicos
+    if (error.message === 'El email ya está registrado') {
+      const errorResponse: ApiResponse<null> = {
+        message: error.message,
+        data: null,
+      };
+      return reply.status(409).send(errorResponse);
+    }
 
-// actualizar
-export const editUser = async (req: FastifyRequest, reply: FastifyReply) => {
-  try {
-    const currentUser = req.user as User;
-    const id = validateId((req.params as any).id, "userId");
+    // Errores de validación de Zod
+    if (error.name === 'ZodError') {
+      const errorResponse: ApiResponse<null> = {
+        message: 'Datos inválidos',
+        data: null,
+      };
+      return reply.status(400).send(errorResponse);
+    }
 
-    const { email, name, password, role } = req.body as any;
-
-    const user = await updateUser(id, { email, name, password, role });
-
-    // Log de auditoría
-    await logAction(
-      currentUser.id,
-      ActionType.UPDATE_USER,
-      EntityType.USER,
-      user.id,
-      `Usuario {userName} actualizó el usuario ${user.name} (${user.email})`
-    );
-
-    const apiResponse: ApiResponse<UserResponse> = {
-      message: "User updated successfully",
-      data: mapUserToResponse(user, false),
-    };
-
-    reply.send(apiResponse);
-  } catch (error: any) {
-    reply.status(400).send({ message: error.message });
-  }
-};
-
-// eliminar
-export const removeUser = async (req: FastifyRequest, reply: FastifyReply) => {
-  try {
-    const currentUser = req.user as User;
-    const id = validateId((req.params as any).id, "userId");
-
-    // Obtener el usuario antes de eliminarlo
-    const userToDelete = await getUserById(id);
-
-    await deleteUser(id);
-
-    // Log de auditoría
-    await logAction(
-      currentUser.id,
-      ActionType.DELETE_USER,
-      EntityType.USER,
-      id,
-      `Usuario {userName} eliminó el usuario ${userToDelete.name} (${userToDelete.email})`
-    );
-
-    const apiResponse: ApiResponse<null> = {
-      message: "User deleted successfully",
+    const errorResponse: ApiResponse<null> = {
+      message: 'Error al crear usuario',
       data: null,
     };
-
-    reply.send(apiResponse);
-  } catch (error: any) {
-    reply.status(400).send({ message: error.message });
+    return reply.status(500).send(errorResponse);
   }
-};
+}
 
-// bloquear / desbloquear
-export const toggleBlock = async (req: FastifyRequest, reply: FastifyReply) => {
+/**
+ * Listar todos los usuarios
+ */
+export async function listUsers(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
-    const currentUser = req.user as User;
-    const id = validateId((req.params as any).id, "userId");
+    const userPayload = (request as AuthenticatedRequest).user;
+    if (!userPayload) {
+      const errorResponse: ApiResponse<null> = {
+        message: 'No autorizado',
+        data: null,
+      };
+      return reply.status(401).send(errorResponse);
+    }
 
-    const user = await toggleBlockStatus(id);
+    const users = await userService.findAll();
 
-    // Log de auditoría
-    await logAction(
-      currentUser.id,
-      user.isBlocked ? ActionType.BLOCK_USER : ActionType.UNBLOCK_USER,
-      EntityType.USER,
-      user.id,
-      `Usuario {userName} ${user.isBlocked ? "bloqueó" : "desbloqueó"} al usuario ${user.name} (${user.email})`
-    );
-
-    const apiResponse: ApiResponse<UserResponse> = {
-      message: user.isBlocked ? "User blocked successfully" : "User unblocked successfully",
-      data: mapUserToResponse(user, false),
+    const response: ApiResponse<typeof users> = {
+      message: 'Usuarios obtenidos exitosamente',
+      data: users,
     };
 
-    reply.send(apiResponse);
-  } catch (error: any) {
-    reply.status(400).send({ message: error.message });
+    return reply.send(response);
+  } catch (error) {
+    const errorResponse: ApiResponse<null> = {
+      message: 'Error al obtener usuarios',
+      data: null,
+    };
+    return reply.status(500).send(errorResponse);
   }
-};
+}
+
+/**
+ * Obtener un usuario por ID
+ */
+export async function getUser(
+  request: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply
+) {
+  try {
+    const userPayload = (request as AuthenticatedRequest).user;
+    if (!userPayload) {
+      const errorResponse: ApiResponse<null> = {
+        message: 'No autorizado',
+        data: null,
+      };
+      return reply.status(401).send(errorResponse);
+    }
+
+    const id = parseInt(request.params.id, 10);
+    if (isNaN(id)) {
+      const errorResponse: ApiResponse<null> = {
+        message: 'ID inválido',
+        data: null,
+      };
+      return reply.status(400).send(errorResponse);
+    }
+
+    const user = await userService.findById(id);
+
+    if (!user) {
+      const errorResponse: ApiResponse<null> = {
+        message: 'Usuario no encontrado',
+        data: null,
+      };
+      return reply.status(404).send(errorResponse);
+    }
+
+    const response: ApiResponse<typeof user> = {
+      message: 'Usuario obtenido exitosamente',
+      data: user,
+    };
+
+    return reply.send(response);
+  } catch (error) {
+    const errorResponse: ApiResponse<null> = {
+      message: 'Error al obtener usuario',
+      data: null,
+    };
+    return reply.status(500).send(errorResponse);
+  }
+}
+
+/**
+ * Actualizar un usuario por ID
+ */
+export async function updateUser(
+  request: FastifyRequest<{ Params: { id: string }; Body: UpdateUserDTO }>,
+  reply: FastifyReply
+) {
+  try {
+    const userPayload = (request as AuthenticatedRequest).user;
+    if (!userPayload) {
+      const errorResponse: ApiResponse<null> = {
+        message: 'No autorizado',
+        data: null,
+      };
+      return reply.status(401).send(errorResponse);
+    }
+
+    const id = parseInt(request.params.id, 10);
+    if (isNaN(id)) {
+      const errorResponse: ApiResponse<null> = {
+        message: 'ID inválido',
+        data: null,
+      };
+      return reply.status(400).send(errorResponse);
+    }
+
+    // Validar datos con Zod
+    const validatedData = updateUserSchema.parse(request.body);
+
+    // Actualizar usuario
+    const updatedUser = await userService.update(id, validatedData);
+
+    const response: ApiResponse<typeof updatedUser> = {
+      message: 'Usuario actualizado exitosamente',
+      data: updatedUser,
+    };
+
+    return reply.send(response);
+  } catch (error: any) {
+    request.log.error(error);
+    
+    // Manejo de errores específicos
+    if (error.message === 'Usuario no encontrado') {
+      const errorResponse: ApiResponse<null> = {
+        message: error.message,
+        data: null,
+      };
+      return reply.status(404).send(errorResponse);
+    }
+
+    if (error.message === 'El email ya está registrado') {
+      const errorResponse: ApiResponse<null> = {
+        message: error.message,
+        data: null,
+      };
+      return reply.status(409).send(errorResponse);
+    }
+
+    // Errores de validación de Zod
+    if (error.name === 'ZodError') {
+      const errorResponse: ApiResponse<null> = {
+        message: 'Datos inválidos',
+        data: null,
+      };
+      return reply.status(400).send(errorResponse);
+    }
+
+    const errorResponse: ApiResponse<null> = {
+      message: 'Error al actualizar usuario',
+      data: null,
+    };
+    return reply.status(500).send(errorResponse);
+  }
+}
+

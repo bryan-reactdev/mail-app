@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useUserStore } from './stores/useUserStore';
 import { Spinner } from './components/ui/spinner';

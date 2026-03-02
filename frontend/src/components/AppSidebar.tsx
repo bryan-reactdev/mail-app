@@ -1,48 +1,45 @@
 import { Link } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
-import { Folder, History, Home, Users, Wrench } from "lucide-react";
-import RoleRestricted from "./access/RoleRestricted";
-
-type SidebarRole = "admin" | "supervisor" | "secretary";
+import { Users, Home, BarChart3 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { useUserStore } from "@/stores/useUserStore";
 
 type SidebarItem = {
     label: string;
-    icon: typeof Home;
+    icon: LucideIcon;
     to: string;
-    roles?: SidebarRole[];
+    adminOnly?: boolean;
+    agentOnly?: boolean;
 };
 
 export default function AppSidebar() {
   const { setOpenMobile, isMobile } = useSidebar();
+  const { currentUser } = useUserStore();
+  const isAdmin = currentUser?.role === "admin";
 
   const menuItems: SidebarItem[] = [
     {
       label: "Dashboard",
       icon: Home,
-      to: "/",
+      to: "/app/",
+      adminOnly: false,
     },
     {
-      label: "Projects",
-      icon: Folder,
-      to: "/projects/agenda",
+      label: "Statistics",
+      icon: BarChart3,
+      to: "/app/statistics",
+      adminOnly: false,
     },
     {
-      label: "Tools",
-      icon: Wrench,
-      to: "/tools",
-      roles: ["admin", "supervisor"],
-    },
-    {
-      label: "Users",
+      label: "Usuarios",
       icon: Users,
-      to: "/users",
+      to: "/app/users",
+      adminOnly: true,
     },
-    {
-      label: "Audit History",
-      icon: History,
-      to: "/audit",
-    },
-  ]
+  ].filter(item => {
+    if (item.adminOnly && !isAdmin) return false;
+    return true;
+  });
 
   return (
     <Sidebar>
@@ -50,26 +47,24 @@ export default function AppSidebar() {
             <SidebarContent>
                 <SidebarGroup>
                   <SidebarGroupLabel>Menu</SidebarGroupLabel>
-                  
+
                   <SidebarGroupContent>
                     <SidebarMenu>
                       {menuItems.map((item) => {
                         const isActive = window.location.pathname.replace(/\/$/, '') === item.to.replace(/\/$/, '');
                         const menuEntry = (
                           <SidebarMenuItem key={item.to}>
-                            <SidebarMenuButton asChild>
+                            <SidebarMenuButton asChild isActive={isActive} className="text-sidebar-foreground">
                               <Link
-                                  className={`h-10 justify-start text-muted-foreground ${isActive ? 'bg-accent !text-white' : ''}`}
                                 to={item.to}
                                 onClick={() => {
-                                  // Cerrar el sidebar en móvil al hacer clic en un item
                                   if (isMobile) {
                                     setOpenMobile(false);
                                   }
                                 }}
                               >
                                 <item.icon />
-                                <span className="font-normal">{item.label}</span>
+                                <span className="font-normal text-sm">{item.label}</span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
