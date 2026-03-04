@@ -1,4 +1,4 @@
-import { FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
 import { AuthService } from '../services/auth.service';
 import { RegisterDTO, LoginDTO } from '../schemas/auth.schema';
 import { AuthenticatedRequest } from '../middlewares/auth';
@@ -17,8 +17,11 @@ export async function register(
       message: 'Usuario registrado exitosamente',
       data: user,
     };
+
     return reply.status(201).send(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) { return }
+
     if (error.message === 'El email ya está registrado') {
       const errorResponse: ApiResponse<null> = {
         message: error.message,
@@ -26,19 +29,11 @@ export async function register(
       };
       return reply.status(409).send(errorResponse);
     }
-    if (error.message.includes('contraseña') || error.message.includes('nombre') || error.message.includes('apellido')) {
-      const errorResponse: ApiResponse<null> = {
-        message: error.message,
-        data: null,
-      };
-      return reply.status(400).send(errorResponse);
-    }
-    request.log.error(error);
-    const errorResponse: ApiResponse<null> = {
+
+    return reply.status(500).send({
       message: 'Error al registrar usuario',
       data: null,
-    };
-    return reply.status(500).send(errorResponse);
+    } as ApiResponse<Error>);
   }
 }
 
@@ -50,14 +45,14 @@ export async function login(
     const user = await authService.login(request.body as LoginDTO);
 
     // Generar token JWT con expiración
-    const token = (request.server as any).jwt.sign(
+    const token = (request.server as FastifyInstance).jwt.sign(
       {
         id: user.id,
         email: user.email,
         role: user.role,
       },
       {
-        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+        expiresIn: '7d',
       }
     );
 
@@ -71,11 +66,11 @@ export async function login(
     });
 
     const { password, ...userWithoutPassword } = user;
-    const response: ApiResponse<{ user: Omit<User, 'password'>; token: string }> = {
+
+    const response: ApiResponse<{ user: Omit<User, 'password'> }> = {
       message: 'Login exitoso',
       data: {
         user: userWithoutPassword,
-        token,
       },
     };
     return reply.send(response);
@@ -88,6 +83,7 @@ export async function login(
       };
       return reply.status(401).send(errorResponse);
     }
+    
     // No exponer detalles del error interno
     request.log.error(error);
     const errorResponse: ApiResponse<null> = {
@@ -145,12 +141,13 @@ export async function getProfile(
       data: userWithoutPassword,
     };
     return reply.send(response);
-  } catch (error) {
-    const errorResponse: ApiResponse<null> = {
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) { return }
+
+    return reply.status(500).send({
       message: 'Error al obtener perfil',
       data: null,
-    };
-    return reply.status(500).send(errorResponse);
+    } as ApiResponse<Error>);
   }
 }
 

@@ -28,16 +28,7 @@ export class User {
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   phone: string | null;
-
-  @Column({ type: 'text', nullable: true })
-  description: string | null;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  license: string | null;
-
-  @Column({ name: 'broker_id', nullable: true })
-  brokerId: number | null;
-
+  
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

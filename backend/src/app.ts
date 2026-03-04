@@ -69,41 +69,23 @@ export async function createApp(): Promise<FastifyInstance> {
     parseOptions: {},
   });
 
-  // CORS
+  // CORS - in development allow all origins so we never send 500 without CORS headers
+  const isProduction = process.env.NODE_ENV === 'production';
   const corsOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-    : ['http://localhost:3000', 'http://localhost:4178', 'http://192.168.0.194:4178'];
-  
+    : ['http://localhost:3000', 'http://localhost:4178', 'http://localhost:5173', 'http://192.168.0.194:4178', 'http://100.69.105.83'];
+
   await app.register(cors, {
-    origin: (origin, cb) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        return cb(null, true);
-      }
-      
-      // In development, allow any localhost or local network IP
-      if (process.env.NODE_ENV === 'development') {
-        if (
-          origin.startsWith('http://localhost:') ||
-          origin.startsWith('http://127.0.0.1:') ||
-          origin.startsWith('http://192.168.') ||
-          origin.startsWith('http://10.') ||
-          origin.startsWith('http://172.')
-        ) {
-          return cb(null, true);
+    origin: isProduction
+      ? (origin, cb) => {
+          if (!origin) return cb(null, true);
+          if (corsOrigins.includes(origin)) return cb(null, true);
+          return cb(null, false);
         }
-      }
-      
-      // Check against configured origins
-      if (corsOrigins.includes(origin)) {
-        return cb(null, true);
-      }
-      
-      // Reject other origins
-      return cb(new Error('Not allowed by CORS'), false);
-    },
+      : true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   // JWT
@@ -122,6 +104,19 @@ export async function createApp(): Promise<FastifyInstance> {
 
   // Registrar rutas
   await registerRoutes(app);
+
+  // Ensure CORS headers on error responses (e.g. 500) so browser doesn't block with "CORS missing"
+  app.setErrorHandler((error: { statusCode?: number; message?: string }, request, reply) => {
+    const origin = request.headers.origin;
+    if (origin) {
+      reply.header('Access-Control-Allow-Origin', origin);
+      reply.header('Access-Control-Allow-Credentials', 'true');
+    }
+    reply.status(error.statusCode ?? 500).send({
+      message: error.message ?? 'Internal Server Error',
+      data: null,
+    });
+  });
 
   return app;
 }

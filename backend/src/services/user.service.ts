@@ -20,7 +20,7 @@ export class UserService {
     });
 
     // Remover la contraseña de todos los usuarios
-    return users.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
+    return users.map(({ password, ...userWithoutPassword }: User) => userWithoutPassword);
   }
 
   /**
@@ -61,9 +61,6 @@ export class UserService {
       password: hashedPassword,
       role: data.role || 'usuario',
       phone: data.phone || null,
-      description: data.description || null,
-      license: data.license || null,
-      brokerId: data.brokerId || null,
     });
 
     const savedUser = await this.userRepository.save(newUser);
@@ -113,16 +110,6 @@ export class UserService {
     // Agent-specific fields
     if (data.phone !== undefined) {
       updateData.phone = data.phone;
-    }
-    if (data.description !== undefined) {
-      updateData.description = data.description;
-    }
-    if (data.license !== undefined) {
-      updateData.license = data.license; // Agent's personal license
-    }
-    // Broker relation (agents work for brokers)
-    if (data.brokerId !== undefined) {
-      updateData.brokerId = data.brokerId;
     }
 
     // Actualizar usuario

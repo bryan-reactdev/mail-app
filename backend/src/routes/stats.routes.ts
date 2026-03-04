@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middlewares/auth';
 import { StatsService } from '../services/stats.service';
 import type { ApiResponse } from '../dtos/apiResponse.dto';
@@ -12,7 +12,7 @@ export default async function (server: FastifyInstance) {
   }>(
     '/stats/logins',
     { preHandler: [authenticate] },
-    async (request, reply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const data = await statsService.getLoginStats();
         const response: ApiResponse<LoginStatsResponse> = {
@@ -20,12 +20,13 @@ export default async function (server: FastifyInstance) {
           data,
         };
         return reply.send(response);
-      } catch (error) {
-        (request as any).log?.error(error);
+      } catch (error: unknown) {
+        if (!(error instanceof Error)) { return }
+
         return reply.status(500).send({
-          message: 'Error fetching login stats',
+          message: error.message,
           data: null,
-        });
+        } as ApiResponse<Error>);
       }
     }
   );

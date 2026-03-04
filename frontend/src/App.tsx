@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import Error from "./pages/Error";
@@ -28,6 +29,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing/>} errorElement={<Error/>}/>
           <Route path="/login" element={<Login/>} errorElement={<Error/>}/>
+          <Route path="/register" element={<Register/>} errorElement={<Error/>}/>
 
           <Route path="/app" element={<ProtectedRoute/>} errorElement={<Error/>}>
             <Route path="" element={<Dashboard/>} errorElement={<Error/>}/>

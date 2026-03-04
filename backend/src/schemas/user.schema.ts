@@ -31,22 +31,6 @@ export const createUserSchema = z.object({
     .max(50, 'El teléfono no puede tener más de 50 caracteres')
     .nullable()
     .optional(),
-  description: z
-    .string()
-    .nullable()
-    .optional(),
-  license: z
-    .string()
-    .max(255, 'La licencia no puede tener más de 255 caracteres')
-    .nullable()
-    .optional(),
-  // Broker relation (agents work for brokers)
-  brokerId: z
-    .number()
-    .int('El ID del broker debe ser un número entero')
-    .positive('El ID del broker debe ser positivo')
-    .nullable()
-    .optional(),
 });
 
 // Tipo TypeScript inferido
@@ -85,17 +69,6 @@ export const createUserJsonSchema = {
       type: ['string', 'null'],
       maxLength: 50,
     },
-    description: {
-      type: ['string', 'null'],
-    },
-    license: {
-      type: ['string', 'null'],
-      maxLength: 255,
-    },
-    brokerId: {
-      type: ['number', 'null'],
-      minimum: 1,
-    },
   },
 } as const;
 
@@ -128,22 +101,6 @@ export const updateUserSchema = z.object({
   phone: z
     .string()
     .max(50, 'El teléfono no puede tener más de 50 caracteres')
-    .nullable()
-    .optional(),
-  description: z
-    .string()
-    .nullable()
-    .optional(),
-  license: z
-    .string()
-    .max(255, 'La licencia no puede tener más de 255 caracteres')
-    .nullable()
-    .optional(),
-  // Broker relation (agents work for brokers)
-  brokerId: z
-    .number()
-    .int('El ID del broker debe ser un número entero')
-    .positive('El ID del broker debe ser positivo')
     .nullable()
     .optional(),
 });
@@ -182,17 +139,6 @@ export const updateUserJsonSchema = {
     phone: {
       type: ['string', 'null'],
       maxLength: 50,
-    },
-    description: {
-      type: ['string', 'null'],
-    },
-    license: {
-      type: ['string', 'null'],
-      maxLength: 255,
-    },
-    brokerId: {
-      type: ['number', 'null'],
-      minimum: 1,
     },
   },
 } as const;

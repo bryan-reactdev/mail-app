@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { ZodSchema, ZodError } from 'zod';
+import { ApiResponse } from 'src/dtos/apiResponse.dto';
+import { ZodSchema, ZodError, ZodIssue } from 'zod';
 
 export interface ValidationOptions {
   body?: ZodSchema;
@@ -27,9 +28,11 @@ export async function validateRequest(
     if (options.params && request.params) {
       request.params = options.params.parse(request.params);
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    if (!(error instanceof ZodError)) { return }
+
     if (error instanceof ZodError) {
-      const errors = error.issues.map((err: any) => ({
+      const errors = error.issues.map((err: ZodIssue) => ({
         field: err.path.join('.'),
         message: err.message,
       }));
@@ -37,7 +40,7 @@ export async function validateRequest(
       return reply.status(400).send({
         error: 'Error de validación',
         details: errors,
-      });
+      } as ApiResponse<ZodIssue[]>);
     }
 
     return reply.status(400).send({

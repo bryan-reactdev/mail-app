@@ -117,9 +117,9 @@ export default function Login() {
                                 {isLogging ? <Spinner /> : "Iniciar sesión"}
                             </Button>
                             <p className="text-xs sm:text-sm text-center text-muted-foreground mt-2">
-                                ¿Quieres ser agente?{" "}
-                                <Link to="/apply" className="text-primary hover:underline">
-                                    Aplica aquí
+                                ¿No tienes cuenta?{" "}
+                                <Link to="/register" className="text-primary hover:underline">
+                                    Regístrate
                                 </Link>
                             </p>
                         </div>

@@ -26,6 +26,30 @@ export const editUserSchema = z.object({
     brokerId: z.number().int("Broker ID must be an integer").positive("Broker ID must be positive").nullable().optional(), // Broker the agent works for
 })
 
+/** Schema for public register page (matches backend /auth/register). */
+export const registerPageSchema = z.object({
+    email: z
+        .email("Email inválido")
+        .min(1, "El email es requerido")
+        .max(255, "El email no puede tener más de 255 caracteres")
+        .toLowerCase()
+        .trim(),
+    password: z
+        .string()
+        .min(8, "La contraseña debe tener al menos 8 caracteres")
+        .max(100, "La contraseña no puede tener más de 100 caracteres"),
+    firstName: z
+        .string()
+        .min(1, "El nombre es requerido")
+        .max(100, "El nombre no puede tener más de 100 caracteres")
+        .trim(),
+    lastName: z
+        .string()
+        .min(1, "El apellido es requerido")
+        .max(100, "El apellido no puede tener más de 100 caracteres")
+        .trim(),
+});
+
 export const registerSchema = z.object({
     email: z
         .email("Email inválido")
@@ -99,6 +123,7 @@ export const createUserSchema = z.object({
 })
 
 export type LoginForm = z.infer<typeof loginSchema>;
+export type RegisterPageForm = z.infer<typeof registerPageSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
 export type EditUserForm = z.infer<typeof editUserSchema>;
 export type RegisterUserForm = z.infer<typeof registerUserSchema>;

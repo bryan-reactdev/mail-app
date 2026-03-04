@@ -49,5 +49,5 @@ Set `VITE_API_URL` (or `VITE_API_IP`) in `.env` to your backend URL (e.g. `http:
 
 With `synchronize: true` (e.g. in development), TypeORM creates:
 
-- `users` — id, email, password, first_name, last_name, role, phone, description, license, broker_id, created_at, updated_at
+- `users` — id, email, password, first_name, last_name, role, phone, created_at, updated_at
 - `login_logs` — id, user_id, created_at

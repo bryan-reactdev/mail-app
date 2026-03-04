@@ -5,9 +5,6 @@ import { createValidator } from '../middlewares/validation';
 import { registerSchema, loginSchema, registerJsonSchema, loginJsonSchema } from '../schemas/auth.schema';
 
 export default async function (server: FastifyInstance) {
-  // ⚠️ IMPORTANTE: En Fastify 5, TODOS los endpoints POST/PUT/PATCH que aceptan body
-  // DEBEN tener schema.body definido. Sin esto, Fastify no parseará el body.
-  // Ver GUIDE_ENDPOINTS.md para el patrón completo.
   server.post(
     '/auth/register',
     {

@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { createUser, listUsers, getUser, updateUser } from '../controllers/user.controller';
 import { authenticate } from '../middlewares/auth';
 import { createValidator } from '../middlewares/validation';
@@ -22,19 +22,18 @@ export default async function (server: FastifyInstance) {
         createValidator({ body: createUserSchema }),
       ],
     },
-    async (req, reply) => createUser(req as any, reply)
+    async (request: FastifyRequest, reply: FastifyReply) => createUser(request, reply)
   );
 
   // Listar todos los usuarios (requiere autenticación)
   server.get(
     '/users/list',
     { preHandler: [authenticate] },
-    listUsers
+    async (request: FastifyRequest, reply: FastifyReply) => listUsers(request, reply)
   );
 
   // Obtener usuario por ID (requiere autenticación)
-  server.get('/users/get/:id', { preHandler: [authenticate] }, (req, reply) => getUser(req as any, reply));
-  server.get('/users/:id', { preHandler: [authenticate] }, (req, reply) => getUser(req as any, reply));
+  server.get('/users/:id', { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => getUser(request, reply));
 
   // Actualizar usuario por ID (requiere autenticación)
   server.put(
@@ -48,7 +47,7 @@ export default async function (server: FastifyInstance) {
         createValidator({ body: updateUserSchema }),
       ],
     },
-    async (req, reply) => updateUser(req as any, reply)
+    async (request: FastifyRequest, reply: FastifyReply) => updateUser(request, reply)
   );
 }
 

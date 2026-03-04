@@ -54,14 +54,11 @@ export const useUserStore = create<UserStore>()((set) => ({
             const res = await axiosData("/auth/login", {
                 method: "POST",
                 data: data,
-            }) as ApiResponse<{ user: User; token: string }>;
+            }) as ApiResponse<{ user: User }>;
 
             const user = res?.data?.user;
-            const token = res?.data?.token;
-            if (user && token) {
+            if (user) {
                 set({ currentUser: user });
-                // Store token in localStorage for WebSocket authentication
-                localStorage.setItem('auth_token', token);
                 return true;
             }
             return false;
@@ -101,8 +98,6 @@ export const useUserStore = create<UserStore>()((set) => ({
         async () => {
             await axiosData("/auth/logout", { method: "POST" });
             set({ currentUser: null });
-            // Remove token from localStorage
-            localStorage.removeItem('auth_token');
         },
         {
             showSuccessToast: true,
