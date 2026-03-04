@@ -18,12 +18,8 @@ export const editUserSchema = z.object({
     lastName: z.string().min(1, "Last name is required").max(100, "Last name cannot exceed 100 characters").trim(),
     email: z.email("Invalid email address").min(1, "Email is required").max(255, "Email cannot exceed 255 characters").toLowerCase().trim(),
     password: z.string().optional(),
-    role: z.enum(["admin", "agente", "usuario"]).optional(),
-    // Agent-specific fields (nullable, only used for users with role 'agente')
+    role: z.enum(["admin", "usuario"]).optional(),
     phone: z.string().max(50, "Phone cannot exceed 50 characters").nullable().optional(),
-    description: z.string().nullable().optional(),
-    license: z.string().max(255, "License cannot exceed 255 characters").nullable().optional(), // Agent's personal license
-    brokerId: z.number().int("Broker ID must be an integer").positive("Broker ID must be positive").nullable().optional(), // Broker the agent works for
 })
 
 /** Schema for public register page (matches backend /auth/register). */
@@ -114,12 +110,8 @@ export const createUserSchema = z.object({
     lastName: z.string().min(1, "Last name is required").max(100, "Last name cannot exceed 100 characters").trim(),
     email: z.email("Invalid email address").min(1, "Email is required").max(255, "Email cannot exceed 255 characters").toLowerCase().trim(),
     password: z.string().min(1, "Password is required").max(100, "Password cannot exceed 100 characters"),
-    role: z.enum(["admin", "agente", "usuario"]).optional(),
-    // Agent-specific fields (nullable, only used for users with role 'agente')
+    role: z.enum(["admin", "usuario"]).optional(),
     phone: z.string().max(50, "Phone cannot exceed 50 characters").nullable().optional(),
-    description: z.string().nullable().optional(),
-    license: z.string().max(255, "License cannot exceed 255 characters").nullable().optional(), // Agent's personal license
-    brokerId: z.number().int("Broker ID must be an integer").positive("Broker ID must be positive").nullable().optional(), // Broker the agent works for
 })
 
 export type LoginForm = z.infer<typeof loginSchema>;

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ResponsiveSelect } from "@/components/ui/custom/responsive-select";
 import { Spinner } from "@/components/ui/spinner";
@@ -31,9 +30,6 @@ export default function RegisterUsuarioModal({ isOpen, onOpenChange }: RegisterU
             password: '',
             role: undefined,
             phone: null,
-            description: null,
-            license: null,
-            brokerId: null,
         },
     });
 
@@ -46,9 +42,6 @@ export default function RegisterUsuarioModal({ isOpen, onOpenChange }: RegisterU
                 password: '',
                 role: undefined,
                 phone: null,
-                description: null,
-                license: null,
-                brokerId: null,
             });
         }
     }, [isOpen, form]);
@@ -179,7 +172,7 @@ export default function RegisterUsuarioModal({ isOpen, onOpenChange }: RegisterU
 
                                     <ResponsiveSelect
                                         value={field.value || ''}
-                                        onValueChange={(value) => field.onChange(value === '' ? undefined : value as "admin" | "agente" | "usuario")}
+                                        onValueChange={(value) => field.onChange(value === '' ? undefined : value as "admin" | "usuario")}
                                         aria-invalid={fieldState.invalid}
                                     >
                                         <SelectTrigger
@@ -190,7 +183,6 @@ export default function RegisterUsuarioModal({ isOpen, onOpenChange }: RegisterU
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="admin">Admin</SelectItem>
-                                            <SelectItem value="agente">Agente</SelectItem>
                                             <SelectItem value="usuario">Usuario</SelectItem>
                                         </SelectContent>
                                     </ResponsiveSelect>
@@ -201,72 +193,6 @@ export default function RegisterUsuarioModal({ isOpen, onOpenChange }: RegisterU
                             )}
                         />
                     </FieldGroup>
-
-                    {/* Agent-specific fields - only show when role is 'agente' */}
-                    <div
-                        className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                            form.watch('role') === 'agente'
-                                ? 'max-h-[1000px] opacity-100 !mb-8'
-                                : 'max-h-0 opacity-0'
-                        }`}
-                    >
-                        <div className={form.watch('role') === 'agente' ? '' : ''}>
-                            <FormSectionHeader icon={UserIcon} title="Información del Agente" />
-                            
-                            <FieldGroup className="flex flex-col lg:flex-row gap-4 mb-2 mt-4">
-                                <Controller
-                                    name="license"
-                                    control={form.control}
-                                    render={({field, fieldState}) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel htmlFor="form-registrar-usuario-license">
-                                                Licencia Personal
-                                            </FieldLabel>
-
-                                            <Input
-                                                {...field}
-                                                value={field.value || ''}
-                                                onChange={(e) => field.onChange(e.target.value || null)}
-                                                id="form-registrar-usuario-license"
-                                                aria-invalid={fieldState.invalid}
-                                                placeholder="Ingresa la licencia personal"
-                                            />
-                                            {fieldState.invalid && (
-                                                <FieldError errors={[fieldState.error]}/>
-                                            )}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
-
-                            <FieldGroup className="mb-2">
-                                <Controller
-                                    name="description"
-                                    control={form.control}
-                                    render={({field, fieldState}) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel htmlFor="form-registrar-usuario-description">
-                                                Descripción
-                                            </FieldLabel>
-
-                                            <Textarea
-                                                {...field}
-                                                value={field.value || ''}
-                                                onChange={(e) => field.onChange(e.target.value || null)}
-                                                id="form-registrar-usuario-description"
-                                                aria-invalid={fieldState.invalid}
-                                                placeholder="Ingresa una descripción del agente"
-                                                rows={4}
-                                            />
-                                            {fieldState.invalid && (
-                                                <FieldError errors={[fieldState.error]}/>
-                                            )}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
-                        </div>
-                    </div>
 
                     <FieldGroup>
                         <Controller

@@ -9,7 +9,6 @@ type SidebarItem = {
     icon: LucideIcon;
     to: string;
     adminOnly?: boolean;
-    agentOnly?: boolean;
 };
 
 export default function AppSidebar() {

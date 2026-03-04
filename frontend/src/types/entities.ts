@@ -5,7 +5,4 @@ export interface User {
     lastName: string;
     role?: string;
     phone?: string | null;
-    description?: string | null;
-    license?: string | null;
-    brokerId?: number | null;
 }

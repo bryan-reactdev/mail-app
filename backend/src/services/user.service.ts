@@ -107,7 +107,6 @@ export class UserService {
       updateData.role = data.role;
     }
 
-    // Agent-specific fields
     if (data.phone !== undefined) {
       updateData.phone = data.phone;
     }

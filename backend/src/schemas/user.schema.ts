@@ -23,9 +23,8 @@ export const createUserSchema = z.object({
     .min(1, 'La contraseña es requerida')
     .max(100, 'La contraseña no puede tener más de 100 caracteres'),
   role: z
-    .enum(['admin', 'agente', 'usuario'])
+    .enum(['admin', 'usuario'])
     .optional(),
-  // Agent-specific fields (nullable, only used for users with role 'agente')
   phone: z
     .string()
     .max(50, 'El teléfono no puede tener más de 50 caracteres')
@@ -63,7 +62,7 @@ export const createUserJsonSchema = {
     },
     role: {
       type: 'string',
-      enum: ['admin', 'agente', 'usuario'],
+      enum: ['admin', 'usuario'],
     },
     phone: {
       type: ['string', 'null'],
@@ -95,9 +94,8 @@ export const updateUserSchema = z.object({
     .max(100, 'La contraseña no puede tener más de 100 caracteres')
     .optional(),
   role: z
-    .enum(['admin', 'agente', 'usuario'])
+    .enum(['admin', 'usuario'])
     .optional(),
-  // Agent-specific fields (nullable, only used for users with role 'agente')
   phone: z
     .string()
     .max(50, 'El teléfono no puede tener más de 50 caracteres')
@@ -134,7 +132,7 @@ export const updateUserJsonSchema = {
     },
     role: {
       type: 'string',
-      enum: ['admin', 'agente', 'usuario'],
+      enum: ['admin', 'usuario'],
     },
     phone: {
       type: ['string', 'null'],

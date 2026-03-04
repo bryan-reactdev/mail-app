@@ -4,7 +4,6 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 import { Controller, useForm } from "react-hook-form";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ResponsiveSelect } from "@/components/ui/custom/responsive-select";
 import { Spinner } from "@/components/ui/spinner";
@@ -34,15 +33,13 @@ export const UsuarioEditarButton = ({ rowData }: UsuarioButtonProps) => {
             password: '',
             role: undefined,
             phone: null,
-            description: null,
-            license: null,
         },
     });
 
     useEffect(() => {
         if (isOpen && rowData) {
-            const roleValue = rowData.role && ['admin', 'agente', 'usuario'].includes(rowData.role) 
-                ? rowData.role as "admin" | "agente" | "usuario"
+            const roleValue = rowData.role && ['admin', 'usuario'].includes(rowData.role) 
+                ? rowData.role as "admin" | "usuario"
                 : undefined;
             form.reset({
                 firstName: rowData.firstName,
@@ -51,9 +48,6 @@ export const UsuarioEditarButton = ({ rowData }: UsuarioButtonProps) => {
                 password: '',
                 role: roleValue,
                 phone: rowData.phone || null,
-                description: rowData.description || null,
-                license: rowData.license || null,
-                brokerId: null,
             });
         }
     }, [isOpen, rowData, form]);
@@ -193,7 +187,7 @@ export const UsuarioEditarButton = ({ rowData }: UsuarioButtonProps) => {
 
                                     <ResponsiveSelect
                                         value={field.value || ''}
-                                        onValueChange={(value) => field.onChange(value === '' ? undefined : value as "admin" | "agente" | "usuario")}
+                                        onValueChange={(value) => field.onChange(value === '' ? undefined : value as "admin" | "usuario")}
                                         aria-invalid={fieldState.invalid}
                                     >
                                         <SelectTrigger
@@ -204,7 +198,6 @@ export const UsuarioEditarButton = ({ rowData }: UsuarioButtonProps) => {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="admin">Admin</SelectItem>
-                                            <SelectItem value="agente">Agente</SelectItem>
                                             <SelectItem value="usuario">Usuario</SelectItem>
                                         </SelectContent>
                                     </ResponsiveSelect>
@@ -215,72 +208,6 @@ export const UsuarioEditarButton = ({ rowData }: UsuarioButtonProps) => {
                             )}
                         />
                     </FieldGroup>
-
-                    {/* Agent-specific fields - only show when role is 'agente' */}
-                    <div
-                        className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                            form.watch('role') === 'agente'
-                                ? 'max-h-[1000px] opacity-100 !mb-8'
-                                : 'max-h-0 opacity-0'
-                        }`}
-                    >
-                        <div className={form.watch('role') === 'agente' ? '' : ''}>
-                            <FormSectionHeader icon={UserIcon} title="Información del Agente" />
-                            
-                            <FieldGroup className="flex flex-col lg:flex-row gap-4 mb-2 mt-4">
-                                <Controller
-                                    name="license"
-                                    control={form.control}
-                                    render={({field, fieldState}) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel htmlFor="form-editar-usuario-license">
-                                                Licencia Personal
-                                            </FieldLabel>
-
-                                            <Input
-                                                {...field}
-                                                value={field.value || ''}
-                                                onChange={(e) => field.onChange(e.target.value || null)}
-                                                id="form-editar-usuario-license"
-                                                aria-invalid={fieldState.invalid}
-                                                placeholder="Ingresa la licencia personal"
-                                            />
-                                            {fieldState.invalid && (
-                                                <FieldError errors={[fieldState.error]}/>
-                                            )}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
-
-                            <FieldGroup className="mb-2">
-                                <Controller
-                                    name="description"
-                                    control={form.control}
-                                    render={({field, fieldState}) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel htmlFor="form-editar-usuario-description">
-                                                Descripción
-                                            </FieldLabel>
-
-                                            <Textarea
-                                                {...field}
-                                                value={field.value || ''}
-                                                onChange={(e) => field.onChange(e.target.value || null)}
-                                                id="form-editar-usuario-description"
-                                                aria-invalid={fieldState.invalid}
-                                                placeholder="Ingresa una descripción del agente"
-                                                rows={4}
-                                            />
-                                            {fieldState.invalid && (
-                                                <FieldError errors={[fieldState.error]}/>
-                                            )}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
-                        </div>
-                    </div>
 
                     <FieldGroup>
                         <Controller

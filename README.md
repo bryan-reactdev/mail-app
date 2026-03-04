@@ -5,8 +5,6 @@ Full-stack base application derived from the inmobiliaria template. It includes:
 - **Frontend:** Vite + React, Tailwind, shadcn-style UI, sidebar + dashboard with menu cards, Landing (placeholder copy), Login, user management (Usuarios), and Statistics (login counts).
 - **Backend:** Fastify + TypeORM, MySQL, JWT auth, user CRUD, and a stats endpoint for "logins in the app."
 
-No properties, brokers, chat, or agent applications — only the core stack and the features above.
-
 ## Quick start
 
 ### Backend
