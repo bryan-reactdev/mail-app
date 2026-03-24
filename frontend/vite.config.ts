@@ -18,12 +18,12 @@ export default defineConfig({
     global: 'globalThis',
   },
   server: {
-    port: 4178,
+    port: 4173,
     host: true,
     allowedHosts: ['domain.com', 'www.domain.com'],
   },
   preview: {
-    port: 4178,
+    port: 4173,
     host: true,
     allowedHosts: ['domain.com', 'www.domain.com'],
   },
