@@ -1,51 +1,98 @@
 # Base App
 
-Full-stack base application derived from the inmobiliaria template. It includes:
+Starter monorepo: **React + Vite** frontend, **Fastify + TypeORM + MySQL** backend.
 
-- **Frontend:** Vite + React, Tailwind, shadcn-style UI, sidebar + dashboard with menu cards, Landing (placeholder copy), Login, user management (Usuarios), and Statistics (login counts).
-- **Backend:** Fastify + TypeORM, MySQL, JWT auth, user CRUD, and a stats endpoint for "logins in the app."
+Includes auth, roles, app shell (sidebar/navbar), landing page, dashboard, and user CRUD — without domain-specific features.
 
 ## Quick start
 
-### Backend
-
 ```bash
-cd backend
-cp .env.example .env   # if you have one; otherwise set DB_* and JWT_SECRET
-npm install
-npm run dev
+# 1. Install dependencies
+npm install --prefix backend
+npm install --prefix frontend
+
+# 2. Start MySQL (Docker)
+cd backend && docker compose up -d
+
+# 3. Configure env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+# 4. Run dev (backend + frontend)
+cd .. && npm run dev
 ```
 
-Default port: `3000`. Ensure MySQL is running and the database exists (e.g. `base_app`).
+- Frontend: http://localhost:4175  
+- Backend: http://localhost:3005  
 
-### Frontend
+Create an admin user via `/register`, then set `role = 'admin'` in the database (or use your seed script).
 
-```bash
-cd frontend
-npm install
-npm run dev
+## Rename / rebrand checklist
+
+Replace **Base App** / **base-app** with your product name:
+
+| What | Where |
+|------|-------|
+| App title | `frontend/index.html` |
+| Package names | `package.json`, `frontend/package.json`, `backend/package.json` |
+| Branding text | `frontend/src/components/layout/AppSidebar.tsx`, `AppNavbar.tsx`, `AuthCard.tsx`, `Landing*.tsx` |
+| Page meta fallback | `frontend/src/lib/pageMeta.ts` |
+| Theme localStorage key | `frontend/src/lib/theme.ts` → `STORAGE_KEY` |
+| Dev HTTPS cert CN | `frontend/scripts/gen-dev-cert.js` |
+| DB name | `backend/.env` → `DB_NAME`, `backend/docker-compose.yml` |
+| SSO app id | `backend/.env` → `SSO_APP_ID`, `backend/src/controllers/auth.controller.ts` |
+| JWT/cookie fallbacks | `backend/src/app.ts` |
+| Folder name | Rename repo directory when rebranding |
+
+Search the repo for `Base App`, `base-app`, and `base_app` to catch anything missed.
+
+## What's included
+
+**Frontend**
+- Landing, login, register, SSO callback
+- Protected routes + role guards (`admin`, `staff`, `supervisor`, `user`)
+- App shell (sidebar, navbar, theme toggle)
+- Dashboard with stat cards
+- User directory table (create / edit / archive / restore)
+- shadcn/ui components, motion effects, toast provider
+
+**Backend**
+- JWT auth (cookie + bearer)
+- User entity + CRUD
+- Profile photo uploads
+- SSO login hook (`SSO_SHARED_SECRET`, `SSO_APP_ID`)
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Backend + frontend concurrently |
+| `npm run dev:https` | HTTPS frontend (for mobile/LAN testing) |
+| `npm run build` | Production build both |
+| `npm run start` | Run compiled backend |
+
+## Project structure
+
+```
+base-app/
+├── frontend/src/
+│   ├── components/   # UI, auth, layout, landing
+│   ├── pages/        # Route pages
+│   ├── lib/          # Auth, roles, navigation, theme
+│   ├── stores/       # Zustand user store
+│   └── dashboard/    # Dashboard building blocks
+└── backend/src/
+    ├── entities/     # TypeORM entities (User)
+    ├── routes/       # API routes
+    ├── controllers/
+    ├── services/
+    └── middlewares/  # Auth, roles, validation
 ```
 
-Set `VITE_API_URL` (or `VITE_API_IP`) in `.env` to your backend URL (e.g. `http://localhost:3000`).
+## Adding your domain
 
-## Environment (backend)
-
-- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (default: `base_app`)
-- `JWT_SECRET`
-- `PORT` (default: 3000)
-- `CORS_ORIGIN` (optional, comma-separated)
-
-## Features
-
-- **Auth:** Login, logout, optional register; JWT + cookie; `GET /auth/profile`.
-- **Users:** List, create, edit users (Usuarios page); table components and modals.
-- **Statistics:** Logins in the app — backend records each login in `login_logs`; `GET /stats/logins` returns counts by month and total; Statistics page shows an area chart and total.
-- **Landing:** Placeholder text and structure; no "Explorar" link.
-- **UI:** ImageViewer (yet-another-react-lightbox), table components, MenuCard grid, sidebar with `menuItems` pattern for easy extension.
-
-## Database
-
-With `synchronize: true` (e.g. in development), TypeORM creates:
-
-- `users` — id, email, password, first_name, last_name, role, phone, created_at, updated_at
-- `login_logs` — id, user_id, created_at
+1. Add entities in `backend/src/entities/`
+2. Register them in `backend/src/config/database.ts`
+3. Add routes/controllers/services
+4. Add frontend pages + nav items in `frontend/src/lib/navigation.ts`
+5. Register routes in `frontend/src/App.tsx`

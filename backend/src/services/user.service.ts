@@ -2,6 +2,10 @@ import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { User } from '../entities/User';
 import { CreateUserDTO, UpdateUserDTO } from '../schemas/user.schema';
+import { isStaffRole } from '../middlewares/roles';
+import { imageService } from './image.service';
+import { splitFullName } from '../utils/name';
+import { isAdminRole } from '../middlewares/roles';
 import * as bcrypt from 'bcryptjs';
 
 export class UserService {
@@ -11,119 +15,139 @@ export class UserService {
     this.userRepository = AppDataSource.getRepository(User);
   }
 
-  /**
-   * Obtiene todos los usuarios sin la contraseña
-   */
+  private omitPassword(user: User): Omit<User, 'password'> {
+    const { password: _, ...rest } = user;
+    return rest;
+  }
+
   async findAll(): Promise<Omit<User, 'password'>[]> {
     const users = await this.userRepository.find({
+      where: { archived: false },
       order: { createdAt: 'DESC' },
     });
-
-    // Remover la contraseña de todos los usuarios
-    return users.map(({ password, ...userWithoutPassword }: User) => userWithoutPassword);
+    return users.map((u) => this.omitPassword(u));
   }
 
-  /**
-   * Obtiene un usuario por ID sin la contraseña
-   */
+  async findArchived(): Promise<Omit<User, 'password'>[]> {
+    const users = await this.userRepository.find({
+      where: { archived: true },
+      order: { archivedAt: 'DESC' },
+    });
+    return users.map((u) => this.omitPassword(u));
+  }
+
   async findById(id: number): Promise<Omit<User, 'password'> | null> {
     const user = await this.userRepository.findOne({ where: { id } });
-    
-    if (!user) {
-      return null;
-    }
-
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    if (!user) return null;
+    return this.omitPassword(user);
   }
 
-  /**
-   * Crea un nuevo usuario
-   */
-  async create(data: CreateUserDTO): Promise<Omit<User, 'password'>> {
-    // Verificar si el email ya está en uso
-    const existingUser = await this.userRepository.findOne({
-      where: { email: data.email },
-    });
-
-    if (existingUser) {
+  private async assertEmailAvailable(email: string | null, excludeId?: number): Promise<void> {
+    if (!email) return;
+    const existing = await this.userRepository.findOne({ where: { email } });
+    if (existing && existing.id !== excludeId) {
       throw new Error('El email ya está registrado');
     }
+  }
 
-    // Hash de la contraseña
+  async create(data: CreateUserDTO, photo?: Buffer | null): Promise<Omit<User, 'password'>> {
+    if (!isStaffRole(data.role)) {
+      throw new Error('Rol inválido');
+    }
+
+    await this.assertEmailAvailable(data.email ?? null);
+
+    const { firstName, lastName } = splitFullName(data.fullName);
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    // Crear nuevo usuario
-    const newUser = this.userRepository.create({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
+    const user = this.userRepository.create({
+      email: data.email ?? null,
       password: hashedPassword,
-      role: data.role || 'usuario',
-      phone: data.phone || null,
+      firstName,
+      lastName,
+      fullName: data.fullName,
+      phone: data.phone,
+      role: data.role,
+      archived: false,
+      archivedAt: null,
     });
 
-    const savedUser = await this.userRepository.save(newUser);
+    const saved = await this.userRepository.save(user);
 
-    // Retornar usuario sin la contraseña
-    const { password, ...userWithoutPassword } = savedUser;
-    return userWithoutPassword;
+    if (photo) {
+      const paths = await imageService.saveProfilePhoto(saved.id, photo);
+      saved.profilePhoto = paths.profilePhoto;
+      saved.profilePhotoThumb = paths.profilePhotoThumb;
+      await this.userRepository.save(saved);
+    }
+
+    return this.omitPassword(saved);
   }
 
-  /**
-   * Actualiza un usuario por ID
-   */
-  async update(id: number, data: UpdateUserDTO): Promise<Omit<User, 'password'>> {
-    // Verificar si el usuario existe
+  async update(
+    id: number,
+    data: UpdateUserDTO,
+    photo?: Buffer | null
+  ): Promise<Omit<User, 'password'>> {
     const user = await this.userRepository.findOne({ where: { id } });
-    
-    if (!user) {
-      throw new Error('Usuario no encontrado');
+    if (!user) throw new Error('Usuario no encontrado');
+    if (user.archived) throw new Error('No se puede editar un usuario archivado');
+    if (!isStaffRole(data.role)) {
+      throw new Error('Rol inválido');
     }
 
-    // Verificar si el email ya está en uso por otro usuario
-    if (data.email !== user.email) {
-      const existingUser = await this.userRepository.findOne({
-        where: { email: data.email },
-      });
+    await this.assertEmailAvailable(data.email ?? null, id);
 
-      if (existingUser) {
-        throw new Error('El email ya está registrado');
-      }
+    const { firstName, lastName } = splitFullName(data.fullName);
+
+    user.fullName = data.fullName;
+    user.firstName = firstName;
+    user.lastName = lastName;
+    user.phone = data.phone;
+    user.email = data.email ?? null;
+    user.role = data.role;
+
+    if (data.password.trim() !== '') {
+      user.password = await bcrypt.hash(data.password, 10);
     }
 
-    // Hash de la contraseña si se proporciona
-    const updateData: Partial<User> = {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-    };
-
-    if (data.password && data.password.trim() !== '') {
-      updateData.password = await bcrypt.hash(data.password, 10);
+    if (photo) {
+      const paths = await imageService.saveProfilePhoto(user.id, photo);
+      user.profilePhoto = paths.profilePhoto;
+      user.profilePhotoThumb = paths.profilePhotoThumb;
     }
 
-    if (data.role !== undefined) {
-      updateData.role = data.role;
+    const saved = await this.userRepository.save(user);
+    return this.omitPassword(saved);
+  }
+
+  async archive(id: number, requestingUserId?: number): Promise<Omit<User, 'password'>> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new Error('Usuario no encontrado');
+    if (user.archived) throw new Error('El usuario ya está archivado');
+
+    if (requestingUserId !== undefined && id === requestingUserId) {
+      throw new Error('No puedes archivar tu propia cuenta');
     }
 
-    if (data.phone !== undefined) {
-      updateData.phone = data.phone;
+    if (isAdminRole(user.role)) {
+      throw new Error('No se puede archivar un administrador');
     }
 
-    // Actualizar usuario
-    await this.userRepository.update(id, updateData);
+    user.archived = true;
+    user.archivedAt = new Date();
+    const saved = await this.userRepository.save(user);
+    return this.omitPassword(saved);
+  }
 
-    // Obtener el usuario actualizado
-    const updatedUser = await this.userRepository.findOne({ where: { id } });
-    
-    if (!updatedUser) {
-      throw new Error('Error al actualizar usuario');
-    }
+  async restore(id: number): Promise<Omit<User, 'password'>> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new Error('Usuario no encontrado');
+    if (!user.archived) throw new Error('El usuario no está archivado');
 
-    // Retornar usuario sin la contraseña
-    const { password, ...userWithoutPassword } = updatedUser;
-    return userWithoutPassword;
+    user.archived = false;
+    user.archivedAt = null;
+    const saved = await this.userRepository.save(user);
+    return this.omitPassword(saved);
   }
 }
-

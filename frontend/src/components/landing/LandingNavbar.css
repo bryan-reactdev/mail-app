@@ -1,0 +1,114 @@
+.landing-navbar {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.landing-navbar-inner {
+  pointer-events: auto;
+  display: flex;
+  width: 100%;
+  max-width: 920px;
+  height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(12, 12, 16, 0.55);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  transition:
+    background 0.45s ease,
+    border-color 0.45s ease,
+    box-shadow 0.45s ease;
+}
+
+.landing-navbar-scrolled .landing-navbar-inner {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(12, 12, 16, 0.65);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
+}
+
+.landing-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.landing-navbar-brand-icon {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.landing-navbar-brand-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.landing-navbar-links {
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (min-width: 640px) {
+  .landing-navbar-links {
+    display: flex;
+  }
+}
+
+.landing-navbar-link {
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.landing-navbar-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.landing-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.landing-navbar-signup {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0 16px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0a0a0a;
+  text-decoration: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.landing-navbar-signup:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}

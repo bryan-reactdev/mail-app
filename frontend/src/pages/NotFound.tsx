@@ -1,61 +1,44 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { AlertCircle, ArrowLeft, Home } from "lucide-react";
-import Layout from "./Layout";
-import { Effect } from "@/components/animate-ui/primitives/effects/effect";
+import { useNavigate } from 'react-router-dom'
+import { AlertCircle, ArrowLeft, Home } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 export default function NotFound() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isAppRoute = location.pathname.startsWith('/app');
-
-  const notFoundContent = (
-    <Effect className="w-full max-w-md" slide fade delay={50}>
-      <Empty className="w-full">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <AlertCircle className="size-12" />
-          </EmptyMedia>
-          <EmptyTitle>Page Not Found</EmptyTitle>
-          <EmptyDescription>
-            The page you are looking for does not exist or has been moved.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <div className="flex flex-col sm:flex-row gap-2 w-full">
-            <Button variant="default" onClick={() => navigate(-1)} className="flex-1">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go Back
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate(isAppRoute ? "/app/" : "/")}
-              className="flex-1"
-            >
-              <Home className="mr-2 h-4 w-4" />
-              Go Home
-            </Button>
-          </div>
-        </EmptyContent>
-      </Empty>
-    </Effect>
-  );
-
-  if (isAppRoute) {
-    return (
-      <Layout>
-        <div className="w-full h-full flex items-center justify-center">
-          {notFoundContent}
-        </div>
-      </Layout>
-    );
-  }
+  const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
-      {notFoundContent}
+    <div className="min-h-screen min-h-[100dvh] w-full flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-2">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-muted">
+            <AlertCircle className="size-6 text-muted-foreground" />
+          </div>
+          <CardTitle>Página no encontrada</CardTitle>
+          <CardDescription>
+            La página que buscas no existe o se ha movido.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 sm:flex-row">
+          <Button variant="default" onClick={() => navigate(-1)} className="flex-1">
+            <ArrowLeft className="mr-2 size-4" />
+            Volver
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/dashboard')}
+            className="flex-1"
+          >
+            <Home className="mr-2 size-4" />
+            Inicio
+          </Button>
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }
-

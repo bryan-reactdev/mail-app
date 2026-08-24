@@ -1,132 +1,108 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { loginSchema } from "@/types/form";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
-import { useUserStore } from "@/stores/useUserStore";
-import { useNavigate, Link } from "react-router-dom";
-import * as z from "zod";
-import { useEffect } from "react";
-import { ArrowLeft } from "lucide-react";
+import { useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { motion } from 'motion/react'
+import { AuthCard } from '@/components/auth/AuthCard'
+import {
+  AuthPageLayout,
+  authInputClass,
+  authLabelClass,
+  authSubmitClass,
+} from '@/components/auth/AuthPageLayout'
+import { BlurFadeItem, BlurFadeStagger } from '@/components/magicui/blur-fade'
+import { useUserStore } from '@/stores/useUserStore'
+import { getHomePathForRole } from '@/lib/auth'
 
 export default function Login() {
-    const { login, isLogging, currentUser } = useUserStore();
-    const navigate = useNavigate();
+  const navigate = useNavigate()
+  const location = useLocation()
+  const login = useUserStore((s) => s.login)
+  const isLogging = useUserStore((s) => s.isLogging)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-    useEffect(() => {
-        if (currentUser && !isLogging) {
-            navigate("/app/");
-        }
-    }, [currentUser, isLogging, navigate]);
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname
 
-    const form = useForm<z.infer<typeof loginSchema>>({
-        resolver: zodResolver(loginSchema),
-        defaultValues: {
-            email: "",
-            password: "",
-        },
-    });
-
-    async function onSubmit(data: z.infer<typeof loginSchema>) {
-        await login(data);
-        // Navigation is handled by useEffect when currentUser is set
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const ok = await login({ email, password })
+    if (ok) {
+      const user = useUserStore.getState().currentUser
+      const home = getHomePathForRole(user?.role)
+      const target =
+        from && from !== '/dashboard' && from !== '/dashboard/perfil' ? from : home
+      navigate(target, { replace: true })
     }
+  }
 
-    return (
-        <div className="relative w-full min-h-screen flex items-center justify-center bg-black p-4 sm:p-6 md:p-8">
-            {/* Background Image */}
-            <div 
-                className="absolute inset-0 w-full h-full bg-cover bg-left sm:bg-center bg-no-repeat bg-white"
-            />
-            {/* Dark Overlay */}
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-b from-black/40 to-black/70" />
-            
-            {/* Content */}
-            <Card className="relative z-10 w-full max-w-md bg-card/98 backdrop-blur-md shadow-2xl">
-                <CardHeader className="flex flex-row items-start gap-3">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate('/')}
-                        className="shrink-0"
-                        aria-label="Volver"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <div className="flex-1">
-                        <CardTitle className="text-2xl sm:text-3xl md:text-4xl">
-                            Iniciar sesión
-                        </CardTitle>
-                        <CardDescription className="text-xs sm:text-sm">
-                            Inicia sesión para acceder a tu cuenta
-                        </CardDescription>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <form id="form-login" onSubmit={form.handleSubmit(onSubmit)}>
-                        <FieldGroup>
-                            <Controller
-                                name="email"
-                                control={form.control}
-                                render={({field, fieldState}) => (
-                                    <Field data-invalid={fieldState.invalid}>
-                                        <FieldLabel htmlFor="form-login-email">
-                                            Email
-                                        </FieldLabel>
-                                        <Input
-                                            {...field}
-                                            id="form-login-email"
-                                            type="text"
-                                            aria-invalid={fieldState.invalid}
-                                            placeholder="ejemplo@ejemplo.com"
-                                        />
-                                        {fieldState.invalid && (
-                                            <FieldError errors={[fieldState.error]}/>
-                                        )}
-                                    </Field>
-                                )}
-                            />
+  return (
+    <AuthPageLayout>
+      <AuthCard
+        title="Iniciar sesión"
+        description="Accede al panel de tu aplicación"
+        footer={
+          <p className="text-center text-sm text-white/50">
+            ¿No tienes cuenta?{' '}
+            <Link
+              to="/register"
+              className="font-medium text-white/85 transition-colors hover:text-white"
+            >
+              Regístrate
+            </Link>
+          </p>
+        }
+      >
+        <BlurFadeStagger stagger={0.08} delayChildren={0.05} once={false} amount={0.5} margin="0px">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <BlurFadeItem direction="up" yOffset={12}>
+              <div>
+                <label htmlFor="email" className={authLabelClass}>
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={authInputClass}
+                  placeholder="tu@email.com"
+                />
+              </div>
+            </BlurFadeItem>
 
-                            <Controller
-                                name="password"
-                                control={form.control}
-                                render={({field, fieldState}) => (
-                                    <Field data-invalid={fieldState.invalid}>
-                                        <FieldLabel htmlFor="form-login-password">
-                                            Contraseña
-                                        </FieldLabel>
-                                        <Input
-                                            {...field}
-                                            id="form-login-password"
-                                            type="password"
-                                            aria-invalid={fieldState.invalid}
-                                            placeholder="********"
-                                        />
-                                        {fieldState.invalid && (
-                                            <FieldError errors={[fieldState.error]}/>
-                                        )}
-                                    </Field>
-                                )}
-                            />
-                        </FieldGroup>
-                        <div className="flex flex-col gap-2 sm:gap-3 mt-4 sm:mt-6">
-                            <Button type="submit" className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base" size="lg" form="form-login" disabled={isLogging}>
-                                {isLogging ? <Spinner /> : "Iniciar sesión"}
-                            </Button>
-                            <p className="text-xs sm:text-sm text-center text-muted-foreground mt-2">
-                                ¿No tienes cuenta?{" "}
-                                <Link to="/register" className="text-primary hover:underline">
-                                    Regístrate
-                                </Link>
-                            </p>
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
-        </div>
-    );
+            <BlurFadeItem direction="up" yOffset={12}>
+              <div>
+                <label htmlFor="password" className={authLabelClass}>
+                  Contraseña
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={authInputClass}
+                  placeholder="••••••••"
+                />
+              </div>
+            </BlurFadeItem>
+
+            <BlurFadeItem direction="up" yOffset={14}>
+              <motion.button
+                type="submit"
+                className={authSubmitClass}
+                disabled={isLogging}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {isLogging ? 'Ingresando…' : 'Ingresar'}
+              </motion.button>
+            </BlurFadeItem>
+          </form>
+        </BlurFadeStagger>
+      </AuthCard>
+    </AuthPageLayout>
+  )
 }
-

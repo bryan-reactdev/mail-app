@@ -1,226 +1,176 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserService } from '../services/user.service';
 import { AuthenticatedRequest } from '../middlewares/auth';
-import type { ApiResponse } from '../dtos/apiResponse.dto';
-import { createUserSchema, CreateUserDTO, updateUserSchema, UpdateUserDTO } from '../schemas/user.schema';
+import { isAdminRole } from '../middlewares/roles';
+import { createUserSchema, updateUserSchema } from '../schemas/user.schema';
+import { parseMultipartRequest } from '../utils/multipart';
 
 const userService = new UserService();
 
-/**
- * Crear un nuevo usuario
- */
-export async function createUser(
-  request: FastifyRequest<{ Body: CreateUserDTO }>,
-  reply: FastifyReply
-) {
+export async function listUsers(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const userPayload = (request as AuthenticatedRequest).user;
-    if (!userPayload) {
-      const errorResponse: ApiResponse<null> = {
-        message: 'No autorizado',
-        data: null,
-      };
-      return reply.status(401).send(errorResponse);
+    if (!(request as AuthenticatedRequest).user) {
+      return reply.status(401).send({ message: 'No autorizado', data: null });
     }
-
-    // Validar datos con Zod
-    const validatedData = createUserSchema.parse(request.body);
-
-    // Crear usuario
-    const newUser = await userService.create(validatedData);
-
-    const response: ApiResponse<typeof newUser> = {
-      message: 'Usuario creado exitosamente',
-      data: newUser,
-    };
-
-    return reply.status(201).send(response);
-  } catch (error: any) {
-    request.log.error(error);
-    
-    // Manejo de errores específicos
-    if (error.message === 'El email ya está registrado') {
-      const errorResponse: ApiResponse<null> = {
-        message: error.message,
-        data: null,
-      };
-      return reply.status(409).send(errorResponse);
-    }
-
-    // Errores de validación de Zod
-    if (error.name === 'ZodError') {
-      const errorResponse: ApiResponse<null> = {
-        message: 'Datos inválidos',
-        data: null,
-      };
-      return reply.status(400).send(errorResponse);
-    }
-
-    const errorResponse: ApiResponse<null> = {
-      message: 'Error al crear usuario',
-      data: null,
-    };
-    return reply.status(500).send(errorResponse);
-  }
-}
-
-/**
- * Listar todos los usuarios
- */
-export async function listUsers(
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
-  try {
-    const userPayload = (request as AuthenticatedRequest).user;
-    if (!userPayload) {
-      const errorResponse: ApiResponse<null> = {
-        message: 'No autorizado',
-        data: null,
-      };
-      return reply.status(401).send(errorResponse);
-    }
-
     const users = await userService.findAll();
-
-    const response: ApiResponse<typeof users> = {
-      message: 'Usuarios obtenidos exitosamente',
-      data: users,
-    };
-
-    return reply.send(response);
-  } catch (error) {
-    const errorResponse: ApiResponse<null> = {
-      message: 'Error al obtener usuarios',
-      data: null,
-    };
-    return reply.status(500).send(errorResponse);
+    return reply.send({ message: 'Usuarios obtenidos exitosamente', data: users });
+  } catch {
+    return reply.status(500).send({ message: 'Error al obtener usuarios', data: null });
   }
 }
 
-/**
- * Obtener un usuario por ID
- */
 export async function getUser(
   request: FastifyRequest<{ Params: { id: string } }>,
   reply: FastifyReply
 ) {
   try {
-    const userPayload = (request as AuthenticatedRequest).user;
-    if (!userPayload) {
-      const errorResponse: ApiResponse<null> = {
-        message: 'No autorizado',
-        data: null,
-      };
-      return reply.status(401).send(errorResponse);
+    if (!(request as AuthenticatedRequest).user) {
+      return reply.status(401).send({ message: 'No autorizado', data: null });
     }
-
     const id = parseInt(request.params.id, 10);
     if (isNaN(id)) {
-      const errorResponse: ApiResponse<null> = {
-        message: 'ID inválido',
-        data: null,
-      };
-      return reply.status(400).send(errorResponse);
+      return reply.status(400).send({ message: 'ID inválido', data: null });
     }
-
+    const authUser = (request as AuthenticatedRequest).user!;
+    if (!isAdminRole(authUser.role) && authUser.id !== id) {
+      return reply.status(403).send({ message: 'Acceso denegado', data: null });
+    }
     const user = await userService.findById(id);
-
     if (!user) {
-      const errorResponse: ApiResponse<null> = {
-        message: 'Usuario no encontrado',
-        data: null,
-      };
-      return reply.status(404).send(errorResponse);
+      return reply.status(404).send({ message: 'Usuario no encontrado', data: null });
     }
-
-    const response: ApiResponse<typeof user> = {
-      message: 'Usuario obtenido exitosamente',
-      data: user,
-    };
-
-    return reply.send(response);
-  } catch (error) {
-    const errorResponse: ApiResponse<null> = {
-      message: 'Error al obtener usuario',
-      data: null,
-    };
-    return reply.status(500).send(errorResponse);
+    return reply.send({ message: 'Usuario obtenido exitosamente', data: user });
+  } catch {
+    return reply.status(500).send({ message: 'Error al obtener usuario', data: null });
   }
 }
 
-/**
- * Actualizar un usuario por ID
- */
+export async function listArchivedUsers(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    if (!(request as AuthenticatedRequest).user) {
+      return reply.status(401).send({ message: 'No autorizado', data: null });
+    }
+    const users = await userService.findArchived();
+    return reply.send({ message: 'Usuarios archivados obtenidos exitosamente', data: users });
+  } catch {
+    return reply.status(500).send({ message: 'Error al obtener usuarios archivados', data: null });
+  }
+}
+
+export async function createUser(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    if (!(request as AuthenticatedRequest).user) {
+      return reply.status(401).send({ message: 'No autorizado', data: null });
+    }
+
+    const { fields, photo } = await parseMultipartRequest(request);
+    const parsed = createUserSchema.safeParse(fields);
+    if (!parsed.success) {
+      return reply.status(400).send({ message: 'Datos inválidos', data: null });
+    }
+
+    const newUser = await userService.create(parsed.data, photo);
+    return reply.status(201).send({ message: 'Usuario creado exitosamente', data: newUser });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : '';
+    if (message === 'El email ya está registrado') {
+      return reply.status(409).send({ message, data: null });
+    }
+    (request as FastifyRequest & { log: { error: (e: unknown) => void } }).log?.error?.(err);
+    return reply.status(500).send({ message: 'Error al crear usuario', data: null });
+  }
+}
+
 export async function updateUser(
-  request: FastifyRequest<{ Params: { id: string }; Body: UpdateUserDTO }>,
+  request: FastifyRequest<{ Params: { id: string } }>,
   reply: FastifyReply
 ) {
   try {
-    const userPayload = (request as AuthenticatedRequest).user;
-    if (!userPayload) {
-      const errorResponse: ApiResponse<null> = {
-        message: 'No autorizado',
-        data: null,
-      };
-      return reply.status(401).send(errorResponse);
+    if (!(request as AuthenticatedRequest).user) {
+      return reply.status(401).send({ message: 'No autorizado', data: null });
     }
 
     const id = parseInt(request.params.id, 10);
     if (isNaN(id)) {
-      const errorResponse: ApiResponse<null> = {
-        message: 'ID inválido',
-        data: null,
-      };
-      return reply.status(400).send(errorResponse);
+      return reply.status(400).send({ message: 'ID inválido', data: null });
     }
 
-    // Validar datos con Zod
-    const validatedData = updateUserSchema.parse(request.body);
-
-    // Actualizar usuario
-    const updatedUser = await userService.update(id, validatedData);
-
-    const response: ApiResponse<typeof updatedUser> = {
-      message: 'Usuario actualizado exitosamente',
-      data: updatedUser,
-    };
-
-    return reply.send(response);
-  } catch (error: any) {
-    request.log.error(error);
-    
-    // Manejo de errores específicos
-    if (error.message === 'Usuario no encontrado') {
-      const errorResponse: ApiResponse<null> = {
-        message: error.message,
-        data: null,
-      };
-      return reply.status(404).send(errorResponse);
+    const { fields, photo } = await parseMultipartRequest(request);
+    const parsed = updateUserSchema.safeParse(fields);
+    if (!parsed.success) {
+      return reply.status(400).send({ message: 'Datos inválidos', data: null });
     }
 
-    if (error.message === 'El email ya está registrado') {
-      const errorResponse: ApiResponse<null> = {
-        message: error.message,
-        data: null,
-      };
-      return reply.status(409).send(errorResponse);
+    const updated = await userService.update(id, parsed.data, photo);
+    return reply.send({ message: 'Usuario actualizado exitosamente', data: updated });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : '';
+    if (message === 'Usuario no encontrado') {
+      return reply.status(404).send({ message, data: null });
     }
-
-    // Errores de validación de Zod
-    if (error.name === 'ZodError') {
-      const errorResponse: ApiResponse<null> = {
-        message: 'Datos inválidos',
-        data: null,
-      };
-      return reply.status(400).send(errorResponse);
+    if (message === 'El email ya está registrado') {
+      return reply.status(409).send({ message, data: null });
     }
-
-    const errorResponse: ApiResponse<null> = {
-      message: 'Error al actualizar usuario',
-      data: null,
-    };
-    return reply.status(500).send(errorResponse);
+    (request as FastifyRequest & { log: { error: (e: unknown) => void } }).log?.error?.(err);
+    return reply.status(500).send({ message: 'Error al actualizar usuario', data: null });
   }
 }
 
+export async function archiveUser(
+  request: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply
+) {
+  try {
+    if (!(request as AuthenticatedRequest).user) {
+      return reply.status(401).send({ message: 'No autorizado', data: null });
+    }
+    const id = parseInt(request.params.id, 10);
+    if (isNaN(id)) {
+      return reply.status(400).send({ message: 'ID inválido', data: null });
+    }
+    const authUser = (request as AuthenticatedRequest).user!;
+    const archived = await userService.archive(id, authUser.id);
+    return reply.send({ message: 'Usuario archivado exitosamente', data: archived });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : '';
+    if (message === 'Usuario no encontrado') {
+      return reply.status(404).send({ message, data: null });
+    }
+    if (
+      message === 'No puedes archivar tu propia cuenta' ||
+      message === 'No se puede archivar un administrador' ||
+      message === 'El usuario ya está archivado'
+    ) {
+      return reply.status(400).send({ message, data: null });
+    }
+    (request as FastifyRequest & { log: { error: (e: unknown) => void } }).log?.error?.(err);
+    return reply.status(500).send({ message: 'Error al archivar usuario', data: null });
+  }
+}
+
+export async function restoreUser(
+  request: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply
+) {
+  try {
+    if (!(request as AuthenticatedRequest).user) {
+      return reply.status(401).send({ message: 'No autorizado', data: null });
+    }
+    const id = parseInt(request.params.id, 10);
+    if (isNaN(id)) {
+      return reply.status(400).send({ message: 'ID inválido', data: null });
+    }
+    const restored = await userService.restore(id);
+    return reply.send({ message: 'Usuario restaurado exitosamente', data: restored });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : '';
+    if (message === 'Usuario no encontrado') {
+      return reply.status(404).send({ message, data: null });
+    }
+    if (message === 'El usuario no está archivado') {
+      return reply.status(400).send({ message, data: null });
+    }
+    (request as FastifyRequest & { log: { error: (e: unknown) => void } }).log?.error?.(err);
+    return reply.status(500).send({ message: 'Error al restaurar usuario', data: null });
+  }
+}

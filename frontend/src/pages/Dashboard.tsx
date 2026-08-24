@@ -1,75 +1,79 @@
-import Layout from "./Layout";
-import MenuCard from "@/components/cards/MenuCard";
-import { Users, Home, BarChart3 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { Effect } from "@/components/animate-ui/primitives/effects/effect";
-import { useUserStore } from "@/stores/useUserStore";
-
-type DashboardMenuItem = {
-    icon: LucideIcon;
-    title: string;
-    description: string;
-    buttonText: string;
-    to: string;
-    adminOnly?: boolean;
-};
+import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { LayoutDashboard, Users, UserCircle } from 'lucide-react'
+import { useUserStore } from '@/stores/useUserStore'
+import { isAdmin, roleLabel } from '@/lib/auth'
+import { DashboardStatCard } from '@/dashboard/components/DashboardStatCard'
 
 export default function Dashboard() {
-    const { currentUser } = useUserStore();
-    const isAdmin = currentUser?.role === "admin";
+  const currentUser = useUserStore((s) => s.currentUser)
+  const users = useUserStore((s) => s.users)
+  const getUsers = useUserStore((s) => s.getUsers)
+  const admin = isAdmin(currentUser?.role)
+  const displayName = currentUser?.fullName ?? `${currentUser?.firstName ?? ''} ${currentUser?.lastName ?? ''}`.trim()
 
-    const menuItems: DashboardMenuItem[] = [
-        {
-            icon: Home,
-            title: "Dashboard",
-            description: "Overview and quick access",
-            buttonText: "Open",
-            to: "/app/",
-            adminOnly: false,
-        },
-        {
-            icon: BarChart3,
-            title: "Statistics",
-            description: "View login stats and app usage",
-            buttonText: "View Statistics",
-            to: "/app/statistics",
-            adminOnly: false,
-        },
-        {
-            icon: Users,
-            title: "Usuarios",
-            description: "Manage users",
-            buttonText: "Manage Users",
-            to: "/app/users",
-            adminOnly: true,
-        },
-    ].filter(item => !item.adminOnly || isAdmin);
+  useEffect(() => {
+    if (admin) void getUsers()
+  }, [admin, getUsers])
 
-    return (
-        <Layout>
-            <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {menuItems.map((item, idx0) => {
-                        const idx = idx0 + 2;
-                        const itemKey = item.to;
+  return (
+    <div className="mx-auto max-w-5xl px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">
+          {admin ? 'Panel principal' : `Hola, ${currentUser?.firstName ?? 'Usuario'}`}
+        </h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {admin
+            ? 'Resumen general de la aplicación.'
+            : `${displayName} · ${roleLabel(currentUser?.role)}`}
+        </p>
+      </div>
 
-                        const card = (
-                            <Effect key={itemKey} slide fade delay={idx * 50} className="w-full h-full">
-                                <MenuCard
-                                    className="w-full h-full"
-                                    icon={item.icon}
-                                    title={item.title}
-                                    description={item.description}
-                                    buttonText={item.buttonText}
-                                    to={item.to}
-                                />
-                            </Effect>
-                        );
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <DashboardStatCard
+          title="Tu rol"
+          value={roleLabel(currentUser?.role)}
+          description="Permisos actuales en el sistema"
+          icon={UserCircle}
+        />
+        {admin ? (
+          <DashboardStatCard
+            title="Usuarios activos"
+            value={String(users.length || '—')}
+            description="Usuarios registrados sin archivar"
+            icon={Users}
+          />
+        ) : null}
+        <DashboardStatCard
+          title="Estado"
+          value="Activo"
+          description="Sesión iniciada correctamente"
+          icon={LayoutDashboard}
+        />
+      </div>
 
-                        return <div key={itemKey}>{card}</div>;
-                    })}
-                </div>
-            </div>
-        </Layout>
-    )
+      {admin ? (
+        <div className="mt-8 rounded-2xl border border-border bg-card p-5">
+          <h2 className="font-semibold">Accesos rápidos</h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Administra usuarios y revisa la configuración del sistema.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              to="/dashboard/usuarios"
+              className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground"
+            >
+              Gestionar usuarios
+            </Link>
+            <Link
+              to="/dashboard/perfil"
+              className="inline-flex h-9 items-center rounded-lg border border-border px-4 text-sm font-medium"
+            >
+              Mi perfil
+            </Link>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
 }

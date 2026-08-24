@@ -1,28 +1,31 @@
 import type { User } from "./entities";
-import type { LoginForm, RegisterForm, RegisterPageForm, RegisterUserForm, EditUserForm, CreateUserForm } from "./form";
+import type { LoginForm, RegisterForm } from "./form";
 
 export interface UserStore {
-    currentUser: User | null;
-    isAuthenticating: boolean;
-    isLogging: boolean;
+  currentUser: User | null;
+  isAuthenticating: boolean;
+  isLogging: boolean;
 
-    user: User | null;
-    isFetchingUser: boolean;
+  users: User[];
+  archivedUsers: User[];
+  isFetchingUsers: boolean;
+  isFetchingArchivedUsers: boolean;
+  isUpdatingUser: boolean;
+  isRegisteringUser: boolean;
+  isCreatingUser: boolean;
+  isArchivingUser: boolean;
+  isRestoringUser: boolean;
 
-    users: User[];
-    isFetchingUsers: boolean;
-    isUpdatingUser: boolean;
-    isRegisteringUser: boolean;
-    isCreatingUser: boolean;
+  authenticate: () => Promise<void>;
+  login: (data: LoginForm) => Promise<boolean>;
+  ssoLogin: (token: string) => Promise<boolean>;
+  register: (data: RegisterForm | FormData) => Promise<boolean>;
+  logout: () => Promise<void>;
 
-    authenticate: () => Promise<void>;
-    login: (data: LoginForm) => Promise<boolean>;
-    register: (data: RegisterForm | RegisterPageForm | FormData) => Promise<boolean>;
-    logout: () => Promise<void>;
-
-    getUser: (id: number) => Promise<User | null>;
-    getUsers: () => Promise<void>;
-    updateUser: (id: number, data: EditUserForm) => Promise<boolean>;
-    registerUser: (data: RegisterUserForm) => Promise<boolean>;
-    createUser: (data: CreateUserForm) => Promise<boolean>;
+  getUsers: () => Promise<void>;
+  getArchivedUsers: () => Promise<void>;
+  createUser: (data: FormData) => Promise<boolean>;
+  updateUser: (id: number, data: FormData) => Promise<boolean>;
+  archiveUser: (id: number) => Promise<boolean>;
+  restoreUser: (id: number) => Promise<boolean>;
 }

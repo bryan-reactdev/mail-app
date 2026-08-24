@@ -1,95 +1,82 @@
-import { useNavigate, useRouteError, isRouteErrorResponse, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { AlertCircle, ArrowLeft, Home, RefreshCw } from "lucide-react";
-import { Effect } from "@/components/animate-ui/primitives/effects/effect";
-import Layout from "./Layout";
+import {
+  useNavigate,
+  useRouteError,
+  isRouteErrorResponse,
+} from 'react-router-dom'
+import { AlertCircle, ArrowLeft, Home, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 export default function Error() {
-  const error = useRouteError();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isAppRoute = location.pathname.startsWith('/app');
+  const error = useRouteError()
+  const navigate = useNavigate()
 
-  let title = "Something went wrong";
-  let message = "An unexpected error occurred. Please try again.";
+  let title = 'Algo salió mal'
+  let message = 'Ocurrió un error inesperado. Por favor, intenta de nuevo.'
 
   if (isRouteErrorResponse(error)) {
     if (error.status === 404) {
-      title = "Page Not Found";
-      message = "The page you are looking for does not exist or has been moved.";
+      title = 'Página no encontrada'
+      message = 'La página que buscas no existe o se ha movido.'
     } else if (error.status === 403) {
-      title = "Access Forbidden";
-      message = "You don't have permission to access this page.";
+      title = 'Acceso denegado'
+      message = 'No tienes permiso para ver esta página.'
     } else if (error.status === 500) {
-      title = "Server Error";
-      message = "Something went wrong on our end. Please try again later.";
+      title = 'Error del servidor'
+      message = 'Algo falló en el servidor. Intenta más tarde.'
     } else {
-      title = `Error ${error.status}`;
-      message = error.statusText || message;
+      title = `Error ${error.status}`
+      message = error.statusText || message
     }
-  } else if (error instanceof Error) {
-    message = (error as Error).message;
+  } else if (error instanceof globalThis.Error) {
+    message = error.message
   } else if (error && typeof error === 'object' && 'message' in error) {
-    message = String((error as { message: unknown }).message);
-  }
-
-  const errorContent = (
-    <Effect className="w-full max-w-md" slide fade delay={50}>
-      <Empty className="w-full">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <AlertCircle className="size-12 text-destructive" />
-          </EmptyMedia>
-          <EmptyTitle>{title}</EmptyTitle>
-          <EmptyDescription>{message}</EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <div className="flex flex-col sm:flex-row gap-2 w-full">
-            <Button
-              variant="default"
-              onClick={() => navigate(-1)}
-              className="flex-1"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go Back
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate(isAppRoute ? "/app/" : "/")}
-              className="flex-1"
-            >
-              <Home className="mr-2 h-4 w-4" />
-              Go Home
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => window.location.reload()}
-              className="flex-1"
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Reload
-            </Button>
-          </div>
-        </EmptyContent>
-      </Empty>
-    </Effect>
-  );
-
-  if (isAppRoute) {
-    return (
-      <Layout>
-        <div className="w-full h-full flex items-center justify-center">
-          {errorContent}
-        </div>
-      </Layout>
-    );
+    message = String((error as { message: unknown }).message)
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
-      {errorContent}
+    <div className="min-h-screen min-h-[100dvh] w-full flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-2">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-destructive/10">
+            <AlertCircle className="size-6 text-destructive" />
+          </div>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{message}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Button
+            variant="default"
+            onClick={() => navigate(-1)}
+            className="flex-1 sm:min-w-0"
+          >
+            <ArrowLeft className="mr-2 size-4" />
+            Volver
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/dashboard')}
+            className="flex-1 sm:min-w-0"
+          >
+            <Home className="mr-2 size-4" />
+            Inicio
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => window.location.reload()}
+            className="flex-1 sm:min-w-0"
+          >
+            <RefreshCw className="mr-2 size-4" />
+            Recargar
+          </Button>
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }
-

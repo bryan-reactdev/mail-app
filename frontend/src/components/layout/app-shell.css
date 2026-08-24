@@ -1,0 +1,190 @@
+.app-glass-panel {
+  border: 1px solid hsl(var(--border) / 0.5);
+  background: hsl(var(--card) / 0.65);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.1);
+  transition:
+    background 0.45s ease,
+    border-color 0.45s ease,
+    box-shadow 0.45s ease;
+}
+
+.dark .app-glass-panel {
+  border-color: oklch(0.95 0.01 268 / 0.07);
+  background: color-mix(in oklch, var(--card) 72%, transparent);
+  box-shadow: 0 8px 32px oklch(0.1 0.02 268 / 0.35);
+}
+
+.app-glass-panel-scrolled {
+  border-color: hsl(var(--border) / 0.65);
+  background: hsl(var(--card) / 0.78);
+  box-shadow: 0 12px 40px hsl(0 0% 0% / 0.14);
+}
+
+.dark .app-glass-panel-scrolled {
+  border-color: oklch(0.95 0.01 268 / 0.09);
+  background: color-mix(in oklch, var(--card) 85%, transparent);
+  box-shadow: 0 12px 40px oklch(0.1 0.02 268 / 0.4);
+}
+
+.app-shell-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.app-shell-brand-icon {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: hsl(var(--foreground) / 0.06);
+}
+
+.dark .app-shell-brand-icon {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.app-shell-brand-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.app-shell-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.app-shell-nav-link:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--foreground) / 0.05);
+}
+
+.dark .app-shell-nav-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.app-shell-nav-link-active {
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+.dark .app-shell-nav-link-active {
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.app-shell-menu {
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid hsl(var(--border) / 0.55);
+  background: hsl(var(--popover) / 0.95);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: 0 12px 40px hsl(0 0% 0% / 0.18);
+}
+
+.dark .app-shell-menu {
+  border-color: oklch(0.95 0.01 268 / 0.09);
+  background: color-mix(in oklch, var(--popover) 94%, transparent);
+  box-shadow: 0 12px 40px oklch(0.1 0.02 268 / 0.42);
+}
+
+.app-shell-menu-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.app-shell-menu-item:hover {
+  background: hsl(var(--foreground) / 0.05);
+}
+
+.dark .app-shell-menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.app-shell-surface {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  padding: 1rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.app-shell-surface:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--foreground) / 0.05);
+}
+
+.dark .app-shell-surface:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.app-shell-surface-icon {
+  display: flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: hsl(var(--foreground) / 0.04);
+  color: hsl(var(--muted-foreground));
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.dark .app-shell-surface-icon {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.app-shell-surface:hover .app-shell-surface-icon {
+  transform: scale(1.05);
+  color: hsl(var(--foreground));
+}
+
+.dark .app-shell-surface:hover .app-shell-surface-icon {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.app-shell-icon-active {
+  background: color-mix(in oklch, var(--primary) 15%, transparent);
+  color: var(--primary);
+}
+
+.sidebar-active-pill {
+  z-index: 10;
+  background: var(--primary);
+  box-shadow: 0 0 8px color-mix(in oklch, var(--primary) 65%, transparent);
+}
