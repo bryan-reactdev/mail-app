@@ -76,7 +76,7 @@ export async function ssoLogin(
   try {
     const { token } = request.body;
     const ssoSecret = process.env.SSO_SHARED_SECRET;
-    const appId = process.env.SSO_APP_ID || 'base-app';
+    const appId = process.env.SSO_APP_ID || 'mail-app';
     const ssoIssuer = process.env.SSO_ISSUER || 'hub-app';
     if (!ssoSecret) {
       return reply.status(500).send({ message: 'SSO no está configurado', data: null });

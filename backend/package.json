@@ -1,5 +1,5 @@
 {
-  "name": "base-app-backend",
+  "name": "mail-app-backend",
   "version": "1.0.0",
   "description": "Base app backend - users & auth",
   "main": "dist/index.js",

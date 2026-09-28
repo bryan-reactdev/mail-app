@@ -20,7 +20,7 @@ export function AuthCard({ title, description, children, footer }: AuthCardProps
         <BorderBeam size={200} duration={14} borderWidth={1.25} />
 
         <p className="text-primary mb-2 text-xs font-semibold uppercase tracking-wide">
-          Base App
+          Mail App
         </p>
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         <p className="mt-2 text-sm leading-relaxed text-white/55">{description}</p>

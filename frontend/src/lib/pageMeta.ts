@@ -37,7 +37,7 @@ export function resolvePageMeta(pathname: string, user?: User | null): PageMeta 
   }
 
   return {
-    title: 'Base App',
+    title: 'Mail App',
     description: '',
     backTo: null,
   }

@@ -11,7 +11,7 @@ export const AppDataSource = new DataSource({
   port: parseInt(process.env.DB_PORT || '3306'),
   username: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'base-app-db',
+  database: process.env.DB_NAME || 'mail-app-db',
   synchronize: process.env.DB_SYNCHRONIZE === 'true' || process.env.NODE_ENV !== 'production',
   logging: process.env.DB_LOGGING === 'true',
   entities: [User],

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { LayoutDashboard, ChevronDown, LogOut, User } from 'lucide-react'
+import { Mail, ChevronDown, LogOut, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useScroll } from '@/hooks/useScroll'
 import { useSidebar } from '@/context/SidebarContext'
@@ -66,9 +66,9 @@ export function AppNavbar() {
 
         <Link to={homePath} className="app-shell-brand hidden shrink-0 sm:flex">
           <span className="app-shell-brand-icon">
-            <LayoutDashboard className="size-4 text-primary" />
+            <Mail className="size-4 text-primary" />
           </span>
-          <span className="app-shell-brand-text hidden md:inline">Base App</span>
+          <span className="app-shell-brand-text hidden md:inline">Mail App</span>
         </Link>
 
         <div className="hidden h-5 w-px bg-border/50 sm:block dark:bg-white/10" />

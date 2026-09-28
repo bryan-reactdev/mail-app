@@ -6,7 +6,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticating = useUserStore((s) => s.isAuthenticating)
   const location = useLocation()
 
-  if (isAuthenticating) {
+  if (isAuthenticating && !currentUser) {
     return (
       <div className="flex min-h-screen min-h-[100dvh] items-center justify-center">
         <p className="text-muted-foreground text-sm">Cargando sesión…</p>

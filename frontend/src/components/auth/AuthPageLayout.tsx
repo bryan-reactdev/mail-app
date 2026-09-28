@@ -1,5 +1,5 @@
 import Prism from '@/components/Prism'
-import { LandingNavbar } from '@/components/landing/LandingNavbar'
+import { AuthNavbar } from '@/components/auth/AuthNavbar'
 
 export const authInputClass =
   'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none transition-[border-color,background-color,box-shadow] placeholder:text-white/30 focus:border-white/20 focus:bg-white/[0.07] focus-visible:ring-2 focus-visible:ring-primary/35 disabled:opacity-50'
@@ -16,7 +16,7 @@ interface AuthPageLayoutProps {
 export function AuthPageLayout({ children }: AuthPageLayoutProps) {
   return (
     <div className="relative min-h-screen min-h-[100dvh] overflow-x-hidden bg-[#1b1e27] text-white">
-      <LandingNavbar />
+      <AuthNavbar />
 
       <div className="pointer-events-none absolute inset-0">
         <Prism

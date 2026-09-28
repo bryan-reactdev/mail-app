@@ -1,8 +1,8 @@
-# Base App
+# Mail App
 
-Starter monorepo: **React + Vite** frontend, **Fastify + TypeORM + MySQL** backend.
+Monorepo: **React + Vite** frontend, **Fastify + TypeORM + MySQL** backend.
 
-Includes auth, roles, app shell (sidebar/navbar), landing page, dashboard, and user CRUD — without domain-specific features.
+Auth, roles, app shell, dashboard, and user CRUD — cloned from [base-app](https://github.com/bryan-reactdev/base-app) without a public landing page.
 
 ## Quick start
 
@@ -22,45 +22,11 @@ cp frontend/.env.example frontend/.env
 cd .. && npm run dev
 ```
 
-- Frontend: http://localhost:4175  
-- Backend: http://localhost:3005  
+- Frontend: http://localhost:4181  
+- Backend: http://localhost:3007  
+- MySQL (Docker): localhost:3310 → `mail-app-db`
 
-Create an admin user via `/register`, then set `role = 'admin'` in the database (or use your seed script).
-
-## Rename / rebrand checklist
-
-Replace **Base App** / **base-app** with your product name:
-
-| What | Where |
-|------|-------|
-| App title | `frontend/index.html` |
-| Package names | `package.json`, `frontend/package.json`, `backend/package.json` |
-| Branding text | `frontend/src/components/layout/AppSidebar.tsx`, `AppNavbar.tsx`, `AuthCard.tsx`, `Landing*.tsx` |
-| Page meta fallback | `frontend/src/lib/pageMeta.ts` |
-| Theme localStorage key | `frontend/src/lib/theme.ts` → `STORAGE_KEY` |
-| Dev HTTPS cert CN | `frontend/scripts/gen-dev-cert.js` |
-| DB name | `backend/.env` → `DB_NAME`, `backend/docker-compose.yml` |
-| SSO app id | `backend/.env` → `SSO_APP_ID`, `backend/src/controllers/auth.controller.ts` |
-| JWT/cookie fallbacks | `backend/src/app.ts` |
-| Folder name | Rename repo directory when rebranding |
-
-Search the repo for `Base App`, `base-app`, and `base_app` to catch anything missed.
-
-## What's included
-
-**Frontend**
-- Landing, login, register, SSO callback
-- Protected routes + role guards (`admin`, `staff`, `supervisor`, `user`)
-- App shell (sidebar, navbar, theme toggle)
-- Dashboard with stat cards
-- User directory table (create / edit / archive / restore)
-- shadcn/ui components, motion effects, toast provider
-
-**Backend**
-- JWT auth (cookie + bearer)
-- User entity + CRUD
-- Profile photo uploads
-- SSO login hook (`SSO_SHARED_SECRET`, `SSO_APP_ID`)
+Create an admin user via `/register`, then set `role = 'admin'` in the database.
 
 ## Scripts
 
@@ -74,9 +40,9 @@ Search the repo for `Base App`, `base-app`, and `base_app` to catch anything mis
 ## Project structure
 
 ```
-base-app/
+mail-app/
 ├── frontend/src/
-│   ├── components/   # UI, auth, layout, landing
+│   ├── components/   # UI, auth, layout
 │   ├── pages/        # Route pages
 │   ├── lib/          # Auth, roles, navigation, theme
 │   ├── stores/       # Zustand user store
@@ -89,10 +55,6 @@ base-app/
     └── middlewares/  # Auth, roles, validation
 ```
 
-## Adding your domain
+## SSO / hub
 
-1. Add entities in `backend/src/entities/`
-2. Register them in `backend/src/config/database.ts`
-3. Add routes/controllers/services
-4. Add frontend pages + nav items in `frontend/src/lib/navigation.ts`
-5. Register routes in `frontend/src/App.tsx`
+Set `SSO_APP_ID=mail-app` and register the app in hub-app when wiring SSO.

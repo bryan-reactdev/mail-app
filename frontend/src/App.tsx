@@ -7,8 +7,8 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AdminRoute } from '@/components/auth/AdminRoute'
 import { StaffOnly } from '@/components/auth/StaffOnly'
 import { GuestRoute } from '@/components/auth/GuestRoute'
+import { HomeRedirect } from '@/components/auth/HomeRedirect'
 import { AppShell } from '@/components/layout/AppShell'
-import Landing from '@/pages/Landing'
 import Login from '@/pages/Login'
 import SsoCallback from '@/pages/SsoCallback'
 import Register from '@/pages/Register'
@@ -26,7 +26,7 @@ function App() {
         <ToastProvider>
           <AuthBootstrap>
             <Routes>
-              <Route path="/" element={<Landing />} errorElement={<Error />} />
+              <Route path="/" element={<HomeRedirect />} errorElement={<Error />} />
               <Route
                 path="/login"
                 element={

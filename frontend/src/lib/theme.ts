@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'base-app-theme'
+const STORAGE_KEY = 'mail-app-theme'
 
 export type Theme = 'light' | 'dark' | 'system'
 

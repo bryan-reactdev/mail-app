@@ -1,4 +1,4 @@
-.landing-navbar {
+.auth-navbar {
   position: fixed;
   top: 20px;
   left: 0;
@@ -10,7 +10,7 @@
   pointer-events: none;
 }
 
-.landing-navbar-inner {
+.auth-navbar-inner {
   pointer-events: auto;
   display: flex;
   width: 100%;
@@ -31,13 +31,13 @@
     box-shadow 0.45s ease;
 }
 
-.landing-navbar-scrolled .landing-navbar-inner {
+.auth-navbar-scrolled .auth-navbar-inner {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(12, 12, 16, 0.65);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
 }
 
-.landing-navbar-brand {
+.auth-navbar-brand {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -45,7 +45,7 @@
   text-decoration: none;
 }
 
-.landing-navbar-brand-icon {
+.auth-navbar-brand-icon {
   display: flex;
   width: 28px;
   height: 28px;
@@ -55,25 +55,13 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-.landing-navbar-brand-text {
+.auth-navbar-brand-text {
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
-.landing-navbar-links {
-  display: none;
-  align-items: center;
-  gap: 4px;
-}
-
-@media (min-width: 640px) {
-  .landing-navbar-links {
-    display: flex;
-  }
-}
-
-.landing-navbar-link {
+.auth-navbar-link {
   padding: 8px 12px;
   border-radius: 10px;
   font-size: 0.8125rem;
@@ -83,18 +71,18 @@
   transition: color 0.2s ease, background 0.2s ease;
 }
 
-.landing-navbar-link:hover {
+.auth-navbar-link:hover {
   color: rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.06);
 }
 
-.landing-navbar-actions {
+.auth-navbar-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.landing-navbar-signup {
+.auth-navbar-signup {
   display: inline-flex;
   height: 36px;
   align-items: center;
@@ -108,7 +96,7 @@
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.landing-navbar-signup:hover {
+.auth-navbar-signup:hover {
   opacity: 0.92;
   transform: translateY(-1px);
 }

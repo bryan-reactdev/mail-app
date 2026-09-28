@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { LayoutDashboard, Lock, LockOpen } from 'lucide-react'
+import { Mail, Lock, LockOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSidebar } from '@/context/SidebarContext'
 import { filterNavSections, isNavItemActive, type NavItem } from '@/lib/navigation'
@@ -138,7 +138,7 @@ function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; onNavig
     <div className="flex h-full flex-col">
       <div className="flex h-[4.5rem] shrink-0 items-center gap-3 border-b border-border/40 px-4 dark:border-white/[0.06]">
         <span className="app-shell-brand-icon shrink-0">
-          <LayoutDashboard className="size-4 text-primary" />
+          <Mail className="size-4 text-primary" />
         </span>
         <AnimatePresence>
           {!collapsed && (
@@ -148,7 +148,7 @@ function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; onNavig
               exit={{ opacity: 0, x: -8 }}
               className="min-w-0"
             >
-              <p className="app-shell-brand-text truncate">Base App</p>
+              <p className="app-shell-brand-text truncate">Mail App</p>
               <p className="truncate text-[0.7rem] text-muted-foreground">Panel</p>
             </motion.div>
           )}

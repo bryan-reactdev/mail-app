@@ -38,7 +38,7 @@ async function main() {
   ]
 
   const pems = await generate(
-    [{ name: 'commonName', value: 'BaseApp Dev' }],
+    [{ name: 'commonName', value: 'MailApp Dev' }],
     {
       keySize: 2048,
       days: 365,

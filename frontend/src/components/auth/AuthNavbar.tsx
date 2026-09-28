@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { LayoutDashboard } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import './LandingNavbar.css'
+import './AuthNavbar.css'
 
 const navEase = [0.21, 0.47, 0.32, 0.98] as const
 
-export function LandingNavbar() {
+export function AuthNavbar() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -19,51 +19,36 @@ export function LandingNavbar() {
 
   return (
     <motion.header
-      className={`landing-navbar ${scrolled ? 'landing-navbar-scrolled' : ''}`}
+      className={`auth-navbar ${scrolled ? 'auth-navbar-scrolled' : ''}`}
       initial={{ y: -72, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: navEase }}
     >
-      <div className="landing-navbar-inner">
+      <div className="auth-navbar-inner">
         <motion.div
           initial={{ opacity: 0, x: -16 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.15, ease: navEase }}
         >
-          <Link to="/" className="landing-navbar-brand">
-            <span className="landing-navbar-brand-icon">
-              <LayoutDashboard className="size-4 text-white" />
+          <Link to="/login" className="auth-navbar-brand">
+            <span className="auth-navbar-brand-icon">
+              <Mail className="size-4 text-white" />
             </span>
-            <span className="landing-navbar-brand-text">Base App</span>
+            <span className="auth-navbar-brand-text">Mail App</span>
           </Link>
         </motion.div>
 
-        <motion.nav
-          className="landing-navbar-links"
-          aria-label="Landing"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25, ease: navEase }}
-        >
-          <a href="/#features" className="landing-navbar-link">
-            Características
-          </a>
-          <a href="/#about" className="landing-navbar-link">
-            Acerca
-          </a>
-        </motion.nav>
-
         <motion.div
-          className="landing-navbar-actions"
+          className="auth-navbar-actions"
           initial={{ opacity: 0, x: 16 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.35, ease: navEase }}
         >
           <ThemeToggle />
-          <Link to="/login" className="landing-navbar-link hidden sm:inline-flex">
+          <Link to="/login" className="auth-navbar-link hidden sm:inline-flex">
             Iniciar sesión
           </Link>
-          <Link to="/register" className="landing-navbar-signup">
+          <Link to="/register" className="auth-navbar-signup">
             Registrarse
           </Link>
         </motion.div>

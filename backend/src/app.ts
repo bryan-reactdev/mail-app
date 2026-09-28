@@ -61,12 +61,12 @@ export async function createApp(): Promise<FastifyInstance> {
   });
 
   await app.register(cookie, {
-    secret: process.env.COOKIE_SECRET || process.env.JWT_SECRET || 'base-app-cookie-secret',
+    secret: process.env.COOKIE_SECRET || process.env.JWT_SECRET || 'mail-app-cookie-secret',
     parseOptions: {},
   });
 
   await app.register(jwt, {
-    secret: process.env.JWT_SECRET || 'base-app-jwt-secret',
+    secret: process.env.JWT_SECRET || 'mail-app-jwt-secret',
     cookie: { cookieName: 'token', signed: false },
     sign: { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
   });

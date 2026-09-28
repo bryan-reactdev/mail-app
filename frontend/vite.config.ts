@@ -10,9 +10,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 function readBackendPort() {
   if (process.env.VITE_BACKEND_PORT) return process.env.VITE_BACKEND_PORT
   const envPath = path.resolve(__dirname, '../backend/.env')
-  if (!fs.existsSync(envPath)) return '3005'
+  if (!fs.existsSync(envPath)) return '3007'
   const match = fs.readFileSync(envPath, 'utf8').match(/^PORT=(\d+)/m)
-  return match?.[1] || '3005'
+  return match?.[1] || '3007'
 }
 
 const backendTarget = `http://localhost:${readBackendPort()}`
@@ -41,7 +41,7 @@ export default defineConfig({
   },
   server: {
     host: true,
-    port: 4175,
+    port: 4181,
     strictPort: true,
     https: devHttps(),
     proxy: {
@@ -59,7 +59,7 @@ export default defineConfig({
   },
   preview: {
     host: true,
-    port: 4175,
+    port: 4181,
     strictPort: true,
   },
 })
